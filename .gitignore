@@ -7,11 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+/api/node_modules
+/api/.env
+/api/.env.example
 node_modules
 dist
 dist-ssr
 *.local
 .env
+.env.example
 
 # Editor directories and files
 .vscode/*

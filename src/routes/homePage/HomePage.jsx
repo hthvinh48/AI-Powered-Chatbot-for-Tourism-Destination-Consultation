@@ -1,10 +1,7 @@
 import { Link } from "react-router-dom"
 import "./homePage.css"
-import { useState } from "react"
 
 const HomePage = () => {
-  const [typingStatus, setTypingStatus] = useState("human1")
-
   return (
     <div className="homepage">
       <div className="left">

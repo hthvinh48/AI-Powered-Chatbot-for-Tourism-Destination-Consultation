@@ -5,6 +5,7 @@ const SignUpPage = () => {
     return (
         <div className='signUpPage'>
             <SignUp
+                routing="path"
                 appearance={{
                     elements: {
                         formFieldInputShowPasswordButton: {
@@ -15,6 +16,7 @@ const SignUpPage = () => {
                 }}
                 path='/sign-up'
                 signInUrl='/sign-in'
+                forceRedirectUrl="/dashboard"
             />
         </div>
     )
