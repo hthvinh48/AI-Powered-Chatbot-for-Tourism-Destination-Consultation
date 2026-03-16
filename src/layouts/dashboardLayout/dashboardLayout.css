@@ -10,7 +10,8 @@
 
     .content {
         flex: 4;
-        background-color: #12101b;
+        background-color: var(--surface-1);
+        color: var(--app-fg);
         border-radius: 20px;
     }
 }

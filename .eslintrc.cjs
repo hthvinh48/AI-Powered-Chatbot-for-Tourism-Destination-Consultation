@@ -7,7 +7,7 @@ module.exports = {
     'plugin:react/jsx-runtime',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', 'api', 'api/**', 'vite.config.js', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', 'api', 'api/**', 'src/template', 'src/template/**', 'vite.config.js', '.eslintrc.cjs'],
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
   settings: { react: { version: '18.2' } },
   plugins: ['react-refresh'],

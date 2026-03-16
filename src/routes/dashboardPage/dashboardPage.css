@@ -3,7 +3,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #12172b;
+    background: var(--surface-2);
     border-radius: 20px;
 
     .texts {
@@ -49,18 +49,18 @@
                 gap: 12px;
                 font-weight: 300;
                 font-size: 14px;
-                color: #a8b3cf;
+                color: var(--text-muted);
                 padding: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid var(--border);
                 border-radius: 16px;
-                background: rgba(255, 255, 255, 0.03);
+                background: var(--hover-bg);
                 cursor: pointer;
                 transition: all 0.2s ease;
 
                 &:hover {
-                    background: rgba(33, 123, 254, 0.12);
-                    border-color: rgba(33, 123, 254, 0.4);
-                    color: #ffffff;
+                    background: var(--accent-hover-bg);
+                    border-color: var(--accent-hover-border);
+                    color: var(--app-fg);
                     transform: translateY(-2px);
                 }
 
@@ -76,8 +76,8 @@
     .formContainer {
         margin-top: auto;
         width: 50%;
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background-color: var(--glass-bg);
+        border: 1px solid var(--glass-border);
         border-radius: 20px;
         margin-bottom: 30px;
 
@@ -96,11 +96,11 @@
                 background-color: transparent;
                 border: none;
                 outline: none;
-                color: #ececec;
+                color: var(--app-fg);
                 font-size: 14px;
 
                 &::placeholder {
-                    color: #555a6e;
+                    color: var(--text-placeholder);
                 }
             }
 

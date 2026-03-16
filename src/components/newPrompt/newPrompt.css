@@ -6,7 +6,7 @@
     width: 90%;
     position: absolute;
     bottom: 10px;
-    background-color: #2c2937;
+    background-color: var(--surface-3);
     border-radius: 20px;
     display: flex;
     align-items: center;
@@ -20,13 +20,13 @@
         border: none;
         outline: none;
         background-color: transparent;
-        color: #ececec;
+        color: var(--app-fg);
     }
 
     button,
     label {
         border-radius: 50%;
-        background-color: #605e68;
+        background-color: var(--control-pill-bg);
         border: none;
         padding: 10px;
         display: flex;

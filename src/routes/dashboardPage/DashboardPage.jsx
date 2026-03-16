@@ -1,6 +1,8 @@
 import './dashboardPage.css'
+import { useI18n } from '../../lib/useI18n'
 
 const DashboardPage = () => {
+    const { t } = useI18n()
     return (
         <div className="dashboardPage">
             <div className="texts">
@@ -10,21 +12,17 @@ const DashboardPage = () => {
                 <div className="options">
                     <div className="option">
                         <img src="/chat.png" alt="" />
-                        <span>Create a New Chat</span>
+                        <span>{t('dashboard.create_trip')}</span>
                     </div>
                     <div className="option">
                         <img src="/image.png" alt="" />
-                        <span>Analyze Images</span>
-                    </div>
-                    <div className="option">
-                        <img src="/code.png" alt="" />
-                        <span>Help me with my Code</span>
+                        <span>{t('dashboard.inspire')}</span>
                     </div>
                 </div>
             </div>
             <div className="formContainer">
                 <form>
-                    <input autoComplete="off" type="text" name="text" placeholder="Ask me anything..." />
+                    <input autoComplete="off" type="text" name="text" placeholder={t('dashboard.ask_placeholder')} />
                     <button>
                         <img src="/arrow.png" alt="" />
                     </button>

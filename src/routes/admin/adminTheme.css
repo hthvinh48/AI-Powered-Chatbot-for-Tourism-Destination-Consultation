@@ -1,0 +1,64 @@
+/* Dark-mode overrides for the template-based admin UI */
+.adminShell {
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-fg);
+}
+
+:root[data-theme="dark"] .adminShell {
+  background: #0b0a10;
+}
+
+:root[data-theme="light"] .adminShell {
+  background: #f1f5f9;
+}
+
+.adminShell .content {
+  background: transparent;
+}
+
+.adminShell .card {
+  background: var(--surface-1);
+  color: var(--app-fg);
+  border: 1px solid var(--glass-border);
+}
+
+.adminShell .table {
+  color: var(--app-fg);
+}
+
+.adminShell .table > :not(caption) > * > * {
+  border-bottom-color: var(--divider);
+}
+
+:root[data-theme="dark"] .sidebar,
+:root[data-theme="dark"] .sidebar .logo-area {
+  background: #0f0e16 !important;
+  border-color: #24233a !important;
+  color: #e5e7eb;
+}
+
+:root[data-theme="dark"] .sidebar .nav-link {
+  color: #cbd5e1;
+}
+
+:root[data-theme="dark"] .sidebar .nav-link:hover,
+:root[data-theme="dark"] .sidebar .nav-link.active {
+  color: #8aa3ff;
+  background-color: rgba(138, 163, 255, 0.12);
+}
+
+:root[data-theme="dark"] .topbar {
+  background: #0f0e16 !important;
+  border-color: #24233a !important;
+}
+
+:root[data-theme="dark"] .content {
+  background: transparent;
+}
+
+:root[data-theme="dark"] .adminShell .btn.btn-light {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--app-fg);
+}

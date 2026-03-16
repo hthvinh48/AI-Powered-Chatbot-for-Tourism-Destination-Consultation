@@ -6,8 +6,8 @@
     hr {
         border: none;
         height: 2px;
-        background-color: #ddd;
-        opacity: 0.1;
+        background-color: var(--divider);
+        opacity: 1;
         border-radius: 5px;
         margin: 20px 0px;
     }
@@ -24,12 +24,14 @@
         overflow: scroll;
     }
 
-    a {
+    a,
+    a:visited {
         padding: 10px;
         border-radius: 10px;
+        color: var(--app-fg) !important;
 
         &:hover {
-            background-color: #2c2937;
+            background-color: var(--hover-strong-bg);
         }
     }
 }

@@ -10,6 +10,7 @@ lerna-debug.log*
 /api/node_modules
 /api/.env
 /api/.env.example
+template
 node_modules
 dist
 dist-ssr

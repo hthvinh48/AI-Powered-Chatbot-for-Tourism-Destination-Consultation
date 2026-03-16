@@ -32,9 +32,9 @@ const HomePage = () => {
 
       <div className="terms">
         <div className="links">
-          <Link to="/">Terms of Service</Link>
+          <Link to="/terms">Terms of Service</Link>
           <span>|</span>
-          <Link to="/">Privacy Policy</Link>
+          <Link to="/privacy">Privacy Policy</Link>
         </div>
       </div>
     </div>

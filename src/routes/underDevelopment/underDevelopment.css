@@ -1,0 +1,43 @@
+.underDev {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.underDevCard {
+  max-width: 680px;
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 22px;
+}
+
+.underDevTitle {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+}
+
+.underDevText {
+  margin: 0 0 16px 0;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+.underDevActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.underDevBtn {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: inherit;
+  cursor: pointer;
+}
+
