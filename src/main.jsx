@@ -16,6 +16,7 @@ import AdminLayout from './routes/admin/AdminLayout.jsx'
 import AdminUsersPage from './routes/admin/AdminUsersPage.jsx'
 import AdminTokensPage from './routes/admin/AdminTokensPage.jsx'
 import UnderDevelopmentPage from './routes/underDevelopment/UnderDevelopmentPage.jsx'
+import NotFoundPage from './routes/notFound/NotFoundPage.jsx'
 
 const router = createBrowserRouter([
   {
@@ -35,19 +36,19 @@ const router = createBrowserRouter([
       },
       {
         path: "/explore",
-        element: <UnderDevelopmentPage title="Explore đang phát triển" />,
+        element: <UnderDevelopmentPage />,
       },
       {
         path: "/contact",
-        element: <UnderDevelopmentPage title="Contact đang phát triển" />,
+        element: <UnderDevelopmentPage />,
       },
       {
         path: "/terms",
-        element: <UnderDevelopmentPage title="Terms đang phát triển" />,
+        element: <UnderDevelopmentPage />,
       },
       {
         path: "/privacy",
-        element: <UnderDevelopmentPage title="Privacy đang phát triển" />,
+        element: <UnderDevelopmentPage />,
       },
       {
         element: <DashboardLayout />,
@@ -73,7 +74,7 @@ const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: <UnderDevelopmentPage title="Không tìm thấy trang" description="Trang bạn truy cập chưa tồn tại hoặc đang được phát triển." />,
+        element: <NotFoundPage />,
       },
     ]
   }

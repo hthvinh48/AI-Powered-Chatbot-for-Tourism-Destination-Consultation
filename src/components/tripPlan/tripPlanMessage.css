@@ -1,0 +1,206 @@
+.tripPlanCard {
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.tripPlanHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tripPlanTitle {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.tripPlanResp {
+  margin-bottom: 10px;
+  font-size: 14px;
+  opacity: 0.95;
+}
+
+.tripPlanMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+.tripPlanActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tripPlanBtn {
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tripPlanBtn.primary {
+  background: var(--control-pill-bg);
+}
+
+.tripPlanBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tripPlanModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 50;
+}
+
+.tripPlanModalBody {
+  width: min(980px, 96vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.tripPlanModalTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.tripPlanModalTitle {
+  font-weight: 800;
+}
+
+.tripPlanClose {
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: inherit;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tripPlanSection {
+  margin-top: 14px;
+}
+
+.tripPlanSectionTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.tripPlanSmall {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.tripPlanGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.tripPlanHotel {
+  border: 1px solid var(--glass-border);
+  background: var(--surface-3);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.tripPlanHotelName {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tripPlanDays {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tripPlanDay {
+  border: 1px solid var(--glass-border);
+  background: var(--surface-3);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.tripPlanDayTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tripPlanList {
+  margin: 8px 0 0 18px;
+}
+
+.tripPlanTableWrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--surface-3);
+}
+
+.tripPlanTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.tripPlanTable th,
+.tripPlanTable td {
+  padding: 10px;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.tripPlanTable th {
+  text-align: left;
+  font-weight: 700;
+  width: 180px;
+  white-space: nowrap;
+}
+
+.tripPlanTable thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  z-index: 1;
+}
+
+.tripPlanThumb {
+  width: 54px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+}
+
+.tripPlanClamp {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

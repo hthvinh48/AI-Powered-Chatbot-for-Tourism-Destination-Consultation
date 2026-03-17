@@ -34,4 +34,116 @@
             background-color: var(--hover-strong-bg);
         }
     }
+
+    .linkLike {
+        padding: 10px;
+        border-radius: 10px;
+        color: var(--app-fg);
+        background: transparent;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+
+        &:hover {
+            background-color: var(--hover-strong-bg);
+        }
+    }
+
+    .chatRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .chatRowLink {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .chatRowDelete {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        border: 1px solid var(--control-border);
+        background: var(--control-bg);
+        color: inherit;
+        cursor: pointer;
+        opacity: 0.85;
+
+        &:hover {
+            opacity: 1;
+            background: var(--hover-strong-bg);
+        }
+    }
+
+    .jsonTestOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 60;
+    }
+
+    .jsonTestModal {
+        width: min(980px, 96vw);
+        max-height: 86vh;
+        overflow: auto;
+        background: var(--surface-2);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        padding: 14px;
+    }
+
+    .jsonTestTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .jsonTestTitle {
+        font-weight: 800;
+    }
+
+    .jsonTestClose {
+        border: 1px solid var(--control-border);
+        background: var(--control-bg);
+        color: inherit;
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+
+    .jsonTestTextarea {
+        width: 100%;
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--control-border);
+        background: var(--surface-3);
+        color: var(--app-fg);
+        resize: vertical;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .jsonTestHint {
+        margin-top: 8px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .jsonTestPreview {
+        margin-top: 12px;
+    }
 }

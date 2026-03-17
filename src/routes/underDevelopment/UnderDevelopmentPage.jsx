@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import './underDevelopment.css'
 import { useI18n } from '../../lib/useI18n'
 
-const UnderDevelopmentPage = ({ title = 'Trang đang phát triển', description }) => {
+const UnderDevelopmentPage = ({ title, description }) => {
   const location = useLocation()
   const { t } = useI18n()
   const text =

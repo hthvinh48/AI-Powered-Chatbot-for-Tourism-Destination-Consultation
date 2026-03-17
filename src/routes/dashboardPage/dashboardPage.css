@@ -56,6 +56,8 @@
                 background: var(--hover-bg);
                 cursor: pointer;
                 transition: all 0.2s ease;
+                text-align: left;
+                outline: none;
 
                 &:hover {
                     background: var(--accent-hover-bg);
@@ -90,7 +92,8 @@
             gap: 20px;
             padding: 5px 5px 5px 20px;
 
-            input {
+            input,
+            textarea {
                 flex: 1;
                 padding: 15px 0;
                 background-color: transparent;
@@ -98,6 +101,7 @@
                 outline: none;
                 color: var(--app-fg);
                 font-size: 14px;
+                resize: none;
 
                 &::placeholder {
                     color: var(--text-placeholder);

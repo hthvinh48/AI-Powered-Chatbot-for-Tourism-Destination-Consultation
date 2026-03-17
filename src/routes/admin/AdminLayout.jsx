@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Show, UserButton, useAuth } from '@clerk/react'
 import { useBackendAuthSync } from '../../lib/useBackendAuthSync'
 import { getBackendAuth } from '../../lib/backendAuth'
 import { toggleTheme } from '../../lib/theme'
 import { useI18n } from '../../lib/useI18n'
+import AccessDeniedPage from '../accessDenied/AccessDeniedPage.jsx'
 
 import '../../template/assets/scss/style.scss'
 import './adminTheme.css'
 
 const AdminLayout = () => {
-  const navigate = useNavigate()
   const location = useLocation()
   const { isLoaded, userId } = useAuth()
   const { syncing, error } = useBackendAuthSync()
@@ -20,9 +20,6 @@ const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [theme, setTheme] = useState(document.documentElement.dataset.theme || 'dark')
 
-  useEffect(() => {
-    if (isLoaded && !userId) navigate('/sign-in')
-  }, [isLoaded, userId, navigate])
   useEffect(() => {
     const onChange = () => setTheme(document.documentElement.dataset.theme || 'dark')
     window.addEventListener('themechange', onChange)
@@ -34,16 +31,13 @@ const AdminLayout = () => {
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
   if (!isLoaded) return 'Loading...'
+  if (!userId) return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('access.denied_text')} />
   if (userId && syncing) return 'Syncing session...'
   if (userId && error) return `Auth error: ${error}`
+  if (!me) return 'Syncing session...'
 
   if (!isAdmin) {
-    return (
-      <div style={{ padding: 24 }}>
-        <h2 className="mb-2">{t('admin.forbidden_title')}</h2>
-        <div className="text-secondary">{t('admin.forbidden_text')}</div>
-      </div>
-    )
+    return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('admin.forbidden_text')} showSignIn={false} />
   }
 
   const overlayShown = mobileOpen
