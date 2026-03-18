@@ -1,17 +1,18 @@
 .dashboardLayout {
     display: flex;
     gap: 50px;
-    padding-top: 20px;
+    padding-top: 14px;
     height: 100%;
 
     .menu {
-        flex: 1;
+        flex: 3;
     }
 
     .content {
-        flex: 4;
+        flex: 7;
         background-color: var(--surface-1);
         color: var(--app-fg);
-        border-radius: 20px;
+        border-bottom-left-radius: 20px;
+        border-bottom-right-radius: 20px;
     }
 }

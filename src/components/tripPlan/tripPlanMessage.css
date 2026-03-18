@@ -55,6 +55,12 @@
   cursor: not-allowed;
 }
 
+.tripPlanBtn:hover {
+  background: var(--surface-3);
+  transform: translateY(-1px);
+  scroll-behavior: smooth;
+}
+
 .tripPlanModal {
   position: fixed;
   inset: 0;
@@ -63,18 +69,19 @@
   align-items: center;
   justify-content: center;
   padding: 18px;
-  z-index: 50;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
 }
 
 .tripPlanModalBody {
-  width: min(980px, 96vw);
-  max-height: 86vh;
+  width: min(1200px, 94vw);
+  max-height: 90vh;
   overflow: auto;
   background: var(--surface-2);
   border: 1px solid var(--glass-border);
-  border-radius: 18px;
   padding: 14px;
   box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+  will-change: transform;
 }
 
 .tripPlanModalTop {
@@ -102,6 +109,7 @@
 
 .tripPlanSection {
   margin-top: 14px;
+  width: 100%;
 }
 
 .tripPlanSectionTitle {
@@ -158,7 +166,6 @@
   width: 100%;
   overflow: auto;
   border: 1px solid var(--glass-border);
-  border-radius: 14px;
   background: var(--surface-3);
 }
 
@@ -186,6 +193,7 @@
   top: 0;
   background: var(--surface-2);
   z-index: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .tripPlanKv th {
@@ -196,10 +204,11 @@
 .tripPlanThumb {
   width: 54px;
   height: 40px;
-  object-fit: cover;
   border-radius: 10px;
   border: 1px solid var(--glass-border);
   background: var(--surface-2);
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
 }
 
 .tripPlanWrap {

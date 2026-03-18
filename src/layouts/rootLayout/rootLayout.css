@@ -1,5 +1,5 @@
 .rootLayout {
-    padding: 16px 64px;
+    padding: 16px 32px;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -17,14 +17,93 @@
             color: var(--app-fg);
 
             img {
-                width: 32px;
-                height: 32px;
+                width: 40px;
+                height: 40px;
+            }
+
+            span {
+                font-size: 20px;
+                font-weight: 700;
+                letter-spacing: 0.6px;
+                color: var(--app-fg);
+                opacity: 0.9;
             }
         }
 
         .user a,
         .user a:visited {
             color: var(--app-fg);
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .userAvatar {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: var(--surface-2);
+            border: 1px solid var(--surface-3);
+        }
+
+        .userAvatar::after {
+            content: "";
+            position: absolute;
+
+            width: 10px;
+            height: 10px;
+
+            border-radius: 50%;
+            background: #22c55e;
+
+            bottom: 2px;
+            right: 2px;
+
+            border: 2px solid var(--surface-2);
+        }
+
+        .headerBtn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border: 1px solid var(--control-border);
+            background: var(--control-bg);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
+        }
+
+        .headerBtn:hover,
+        .langToggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        .langToggle {
+            width: 44px;
+            height: 32px;
+            border-radius: 16px;
+            border: 1px solid var(--control-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--control-bg);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
         }
     }
 

@@ -11,11 +11,12 @@
   },
   "dependencies": {
     "@clerk/react": "^6.0.1",
-    "@tanstack/react-query": "^5.90.21",
     "@tabler/icons-webfont": "^3.34.1",
+    "@tanstack/react-query": "^5.90.21",
     "bootstrap": "^5.3.8",
     "react": "19.0.0-rc-8b08e99e-20240713",
     "react-dom": "19.0.0-rc-8b08e99e-20240713",
+    "react-icons": "^5.6.0",
     "react-router-dom": "7.13.1",
     "react-type-animation": "^3.2.0"
   },

@@ -63,20 +63,30 @@
         white-space: nowrap;
     }
 
-    .chatRowDelete {
-        width: 32px;
-        height: 32px;
-        border-radius: 10px;
-        border: 1px solid var(--control-border);
-        background: var(--control-bg);
-        color: inherit;
-        cursor: pointer;
-        opacity: 0.85;
+    .chatRow:hover {
+        background-color: var(--hover-strong-bg);
+        border-radius: 8px;
+    }
 
-        &:hover {
-            opacity: 1;
-            background: var(--hover-strong-bg);
-        }
+    .chatRowDelete {
+        width: 26px;
+        height: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: var(--app-fg);
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .chatRowDelete:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
     }
 
     .jsonTestOverlay {
@@ -145,5 +155,11 @@
 
     .jsonTestPreview {
         margin-top: 12px;
+    }
+
+    .chatRow.active {
+        background: var(--surface-3);
+        border-radius: 8px;
+        font-weight: 600;
     }
 }

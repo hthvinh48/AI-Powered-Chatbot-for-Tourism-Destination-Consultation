@@ -1,11 +1,20 @@
+.newPrompt {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+}
+
 .endChat {
-    padding-bottom: 100px;
+    padding-bottom: 36px;
 }
 
 .newForm {
-    width: 90%;
+    width: 100%;
     position: absolute;
-    bottom: 10px;
+    bottom: -10px;
     background-color: var(--surface-3);
     border-radius: 20px;
     display: flex;

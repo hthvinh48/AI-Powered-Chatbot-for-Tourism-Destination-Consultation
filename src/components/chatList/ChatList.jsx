@@ -7,6 +7,7 @@ import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
 import TripPlanMessage from '../tripPlan/TripPlanMessage'
 import { hasTripPlanJson } from '../../lib/tolerantJson'
+import { useParams } from 'react-router-dom'
 
 const ChatList = () => {
     const { t } = useI18n()
@@ -22,6 +23,8 @@ const ChatList = () => {
     const [savedPlans, setSavedPlans] = useState([])
     const [savedLoading, setSavedLoading] = useState(false)
     const [savedError, setSavedError] = useState('')
+    const { id } = useParams()
+    const activeChatId = Number(id)
 
     const load = async () => {
         const res = await apiRequestBackend('/api/chat')
@@ -110,10 +113,14 @@ const ChatList = () => {
             <span className="title">{t('menu.recents')}</span>
             <div className="list">
                 {(items || []).map((c) => (
-                    <div className="chatRow" key={c.id}>
+                    <div
+                        className={`chatRow ${c.id === activeChatId ? 'active' : ''}`}
+                        key={c.id}
+                    >
                         <Link className="chatRowLink" to={`/dashboard/chats/${c.id}`}>
                             {c.title || `Chat #${c.id}`}
                         </Link>
+
                         <button
                             type="button"
                             className="chatRowDelete"
@@ -122,8 +129,6 @@ const ChatList = () => {
                                 e.stopPropagation()
                                 deleteChat(c.id)
                             }}
-                            aria-label={`Delete chat ${c.id}`}
-                            title="Delete"
                         >
                             ✕
                         </button>

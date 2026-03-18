@@ -4,6 +4,7 @@ import { ClerkProvider, Show, UserButton } from '@clerk/react'
 import { useEffect, useState } from 'react'
 import { toggleTheme } from '../../lib/theme'
 import { useI18n } from '../../lib/useI18n'
+import { FiMoon, FiSun } from 'react-icons/fi'
 
 const RootLayout = () => {
   const location = useLocation()
@@ -53,12 +54,15 @@ const RootLayout = () => {
                 color: 'inherit',
                 cursor: 'pointer',
                 marginRight: 12,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
               }}
               aria-label="Toggle theme"
               title="Toggle theme"
+              className="headerBtn"
             >
-              {theme === 'dark' ? 'Dark' : 'Light'}
+              {theme === "dark" ? <FiMoon /> : <FiSun />}
             </button>
+
             <button
               type="button"
               onClick={toggleLang}
@@ -70,14 +74,27 @@ const RootLayout = () => {
                 color: 'inherit',
                 cursor: 'pointer',
                 marginRight: 12,
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
               }}
               aria-label="Toggle language"
               title="Toggle language"
+              className="langToggle"
             >
-              {lang === 'en' ? 'EN' : 'VI'}
+              {lang === "en" ? "EN" : "VI"}
             </button>
+
             <Show when="signed-in">
-              <UserButton />
+              <div className="userAvatar">
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: {
+                        width: "36px",
+                        height: "36px",
+                      },
+                    },
+                  }} />
+              </div>
             </Show>
             <Show when="signed-out">
               {!isAuthRoute ? (

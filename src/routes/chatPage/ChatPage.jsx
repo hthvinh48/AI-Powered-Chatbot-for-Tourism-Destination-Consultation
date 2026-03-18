@@ -16,8 +16,14 @@ const ChatPage = () => {
   const endRef = useRef(null)
 
   const scrollToEnd = useCallback(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const container = endRef.current?.parentElement
+    if (!container) return
+    container.scrollTop = container.scrollHeight
   }, [])
+
+  useEffect(() => {
+    scrollToEnd()
+  }, [messages, scrollToEnd])
 
   const load = useCallback(async () => {
     if (!Number.isFinite(chatId)) {
@@ -30,7 +36,6 @@ const ChatPage = () => {
     try {
       const res = await apiRequestBackend(`/api/chat/${chatId}/messages?order=asc&limit=200`)
       setMessages(res?.items || [])
-      setTimeout(scrollToEnd, 0)
     } catch (err) {
       setError(err?.message || 'Failed to load messages')
     } finally {
@@ -46,7 +51,6 @@ const ChatPage = () => {
     (newMessages) => {
       if (!Array.isArray(newMessages) || newMessages.length === 0) return
       setMessages((prev) => [...prev, ...newMessages])
-      setTimeout(scrollToEnd, 0)
     },
     [scrollToEnd],
   )
@@ -60,16 +64,16 @@ const ChatPage = () => {
 
           {!loading && !error
             ? messages.map((m) => {
-                const isUser = String(m.role || '').toLowerCase() === 'user'
-                const isTrip = !isUser && hasTripPlanJson(m.content)
-                return (
-                  <div className={`message ${isUser ? 'user' : ''}`} key={m.id}>
-                    {isUser ? <div>{m.content}</div> : null}
-                    {isTrip ? <TripPlanMessage chatId={chatId} content={m.content} /> : null}
-                    {!isUser && !isTrip ? <div>{m.content}</div> : null}
-                  </div>
-                )
-              })
+              const isUser = String(m.role || '').toLowerCase() === 'user'
+              const isTrip = !isUser && hasTripPlanJson(m.content)
+              return (
+                <div className={`message ${isUser ? 'user' : ''}`} key={m.id}>
+                  {isUser ? <div>{m.content}</div> : null}
+                  {isTrip ? <TripPlanMessage chatId={chatId} content={m.content} /> : null}
+                  {!isUser && !isTrip ? <div>{m.content}</div> : null}
+                </div>
+              )
+            })
             : null}
 
           {thinking ? <div className="message">Đang suy nghĩ...</div> : null}
