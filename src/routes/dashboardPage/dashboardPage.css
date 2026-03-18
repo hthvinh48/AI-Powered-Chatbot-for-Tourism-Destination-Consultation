@@ -73,6 +73,16 @@
                 }
             }
         }
+
+        .savedTripsLink {
+            margin-top: -20px;
+            border: 1px solid var(--control-border);
+            background: var(--control-bg);
+            color: var(--app-fg);
+            border-radius: 12px;
+            padding: 10px 12px;
+            cursor: pointer;
+        }
     }
 
     .formContainer {
@@ -130,5 +140,68 @@
                 }
             }
         }
+    }
+
+    .savedOverlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 70;
+    }
+
+    .savedModal {
+        width: min(980px, 96vw);
+        max-height: 86vh;
+        overflow: auto;
+        background: var(--surface-2);
+        border: 1px solid var(--glass-border);
+        border-radius: 18px;
+        padding: 14px;
+    }
+
+    .savedTop {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .savedTitle {
+        font-weight: 800;
+    }
+
+    .savedTopActions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .savedBtn {
+        border: 1px solid var(--control-border);
+        background: var(--control-bg);
+        color: inherit;
+        height: 34px;
+        border-radius: 10px;
+        cursor: pointer;
+        padding: 0 12px;
+    }
+
+    .savedHint {
+        margin-top: 10px;
+        font-size: 12px;
+        opacity: 0.85;
+    }
+
+    .savedList {
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 }

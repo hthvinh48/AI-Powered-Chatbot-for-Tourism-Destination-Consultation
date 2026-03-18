@@ -50,6 +50,16 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
         return
       }
 
+      const optimisticUser = {
+        id: `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        role: 'USER',
+        content: msg,
+        createdAt: new Date().toISOString(),
+        _temp: true,
+      }
+      onNewMessages?.([optimisticUser])
+      setText('')
+
       setPending(true)
       onPendingChange?.(true)
       try {
@@ -64,12 +74,8 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
           })
 
           const msgs = Array.isArray(res?.messages) ? res.messages : []
-          const patched = msgs.map((m) => {
-            if (String(m?.role || '').toLowerCase() !== 'assistant') return m
-            return { ...m, content: wrapper }
-          })
-
-          onNewMessages?.(patched)
+          const assistant = msgs.find((m) => String(m?.role || '').toLowerCase() === 'assistant')
+          if (assistant) onNewMessages?.([{ ...assistant, content: wrapper }])
         } else {
           const res = await apiRequestBackend('/api/chat/ask', {
             method: 'POST',
@@ -81,18 +87,17 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
               trip_plan: res?.trip_plan || null,
             })
             const msgs = Array.isArray(res?.messages) ? res.messages : []
-            const patched = msgs.map((m) => {
-              if (String(m?.role || '').toLowerCase() !== 'assistant') return m
-              return { ...m, content: wrapper }
-            })
-            onNewMessages?.(patched)
+            const assistant = msgs.find((m) => String(m?.role || '').toLowerCase() === 'assistant')
+            if (assistant) onNewMessages?.([{ ...assistant, content: wrapper }])
           } else {
-            onNewMessages?.(res?.messages || [])
+            const msgs = Array.isArray(res?.messages) ? res.messages : []
+            const assistant = msgs.find((m) => String(m?.role || '').toLowerCase() === 'assistant')
+            if (assistant) onNewMessages?.([assistant])
           }
         }
-        setText('')
       } catch (err) {
         notify.error(err?.message || 'Request failed')
+        setText(msg)
       } finally {
         setPending(false)
         onPendingChange?.(false)

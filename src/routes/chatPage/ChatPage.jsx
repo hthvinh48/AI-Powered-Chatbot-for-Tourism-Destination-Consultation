@@ -4,20 +4,7 @@ import './chatPage.css'
 import NewPrompt from '../../components/newPrompt/NewPrompt'
 import { apiRequestBackend } from '../../lib/apiClient'
 import TripPlanMessage from '../../components/tripPlan/TripPlanMessage'
-
-function hasTripPlanJson(content) {
-  try {
-    const s = String(content || '')
-    const fence =
-      s.match(/```json\s*([\s\S]*?)```/i) ||
-      s.match(/```\s*([\s\S]*?)```/i)
-    const candidate = fence && fence[1] ? fence[1].trim() : s
-    const obj = JSON.parse(candidate)
-    return Boolean(obj && typeof obj === 'object' && obj.trip_plan)
-  } catch {
-    return false
-  }
-}
+import { hasTripPlanJson } from '../../lib/tolerantJson'
 
 const ChatPage = () => {
   const { id } = useParams()
@@ -74,13 +61,12 @@ const ChatPage = () => {
           {!loading && !error
             ? messages.map((m) => {
                 const isUser = String(m.role || '').toLowerCase() === 'user'
+                const isTrip = !isUser && hasTripPlanJson(m.content)
                 return (
                   <div className={`message ${isUser ? 'user' : ''}`} key={m.id}>
                     {isUser ? <div>{m.content}</div> : null}
-                    {!isUser && hasTripPlanJson(m.content) ? (
-                      <TripPlanMessage chatId={chatId} content={m.content} />
-                    ) : null}
-                    {!isUser && !hasTripPlanJson(m.content) ? <div>{m.content}</div> : null}
+                    {isTrip ? <TripPlanMessage chatId={chatId} content={m.content} /> : null}
+                    {!isUser && !isTrip ? <div>{m.content}</div> : null}
                   </div>
                 )
               })

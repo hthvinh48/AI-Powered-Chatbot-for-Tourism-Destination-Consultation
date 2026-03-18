@@ -74,6 +74,7 @@
   border: 1px solid var(--glass-border);
   border-radius: 18px;
   padding: 14px;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
 }
 
 .tripPlanModalTop {
@@ -178,8 +179,6 @@
 .tripPlanTable th {
   text-align: left;
   font-weight: 700;
-  width: 180px;
-  white-space: nowrap;
 }
 
 .tripPlanTable thead th {
@@ -187,6 +186,11 @@
   top: 0;
   background: var(--surface-2);
   z-index: 1;
+}
+
+.tripPlanKv th {
+  width: 180px;
+  white-space: nowrap;
 }
 
 .tripPlanThumb {
@@ -198,9 +202,27 @@
   background: var(--surface-2);
 }
 
-.tripPlanClamp {
-  max-width: 320px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.tripPlanWrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.tripPlanDayRow td {
+  background: var(--surface-2);
+}
+
+.tripPlanDayHeader {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.tripPlanDayMeta {
+  font-weight: 400;
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+.tripPlanEmpty {
+  opacity: 0.7;
 }
