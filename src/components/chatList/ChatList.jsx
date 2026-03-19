@@ -104,7 +104,7 @@ const ChatList = () => {
                     await loadSaved()
                 }}
             >
-                {t('trip.saved_plans')} ({savedPlans.length})
+                {t('trip.saved_plans')}
             </button>
             {canSeeAdmin ? <Link to="/admin">{t('menu.admin')}</Link> : null}
             <Link to="/explore">{t('menu.explore')}</Link>

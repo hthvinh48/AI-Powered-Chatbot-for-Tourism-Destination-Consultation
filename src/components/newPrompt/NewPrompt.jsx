@@ -109,9 +109,9 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
       <div className="endChat" ref={endRef}></div>
       <div className="newPrompt">
         <form className="newForm" onSubmit={submit}>
-          <label htmlFor="file">
+          {/* <label htmlFor="file">
             <img src="/attachment.png" alt="" />
-          </label>
+          </label> */}
           <input id='file' type="file" multiple={false} hidden />
           <textarea
             name="text"

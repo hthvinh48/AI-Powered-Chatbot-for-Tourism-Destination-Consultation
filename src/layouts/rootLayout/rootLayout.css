@@ -3,6 +3,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
+    /* background-color: #212126; */
 
     header {
         display: flex;

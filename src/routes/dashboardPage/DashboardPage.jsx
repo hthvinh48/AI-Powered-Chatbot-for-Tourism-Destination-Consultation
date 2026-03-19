@@ -94,7 +94,7 @@ const DashboardPage = () => {
                     onClick={() => setSavedOpen(true)}
                     disabled={savedLoading}
                 >
-                    {t('trip.saved_plans')} ({savedPlans.length})
+                    {t('trip.saved_plans')} [{savedPlans.length}]
                 </button>
             </div>
             <div className="formContainer">

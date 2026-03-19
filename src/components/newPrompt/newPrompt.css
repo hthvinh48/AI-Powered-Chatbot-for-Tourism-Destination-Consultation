@@ -12,9 +12,9 @@
 }
 
 .newForm {
-    width: 100%;
+    width: 90%;
     position: absolute;
-    bottom: -10px;
+    bottom: 0px;
     background-color: var(--surface-3);
     border-radius: 20px;
     display: flex;
@@ -36,15 +36,20 @@
 
     button,
     label {
+        background: linear-gradient(135deg, #217bfe, #6a4cff);
         border-radius: 50%;
-        background-color: var(--control-pill-bg);
         border: none;
+        cursor: pointer;
         padding: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        cursor: pointer;
-        opacity: 1;
+        margin-right: 8px;
+        transition: opacity 0.2s ease;
+
+        &:hover {
+            opacity: 0.85;
+        }
 
         img {
             width: 16px;
