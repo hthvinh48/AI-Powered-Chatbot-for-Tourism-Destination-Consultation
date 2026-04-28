@@ -1,6 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useI18n } from '../../lib/useI18n'
+import AdminDataTable from './AdminDataTable.jsx'
+
+const TOKEN_TABLE_SORT_MAP = {
+  username: 'username',
+  email: 'email',
+  tokens: 'tokens',
+}
 
 const AdminTokensPage = () => {
   const { t } = useI18n()
@@ -35,100 +42,169 @@ const AdminTokensPage = () => {
     load()
   }, [load])
 
+  const summary = useMemo(() => {
+    const items = stats?.items || []
+    const userCount = items.length
+    const total = stats?.totalTokens || 0
+    const avg = userCount ? Math.round(total / userCount) : 0
+    const max = items.reduce((acc, x) => Math.max(acc, x.tokens || 0), 0)
+    return { userCount, total, avg, max }
+  }, [stats])
+
+  const activeTableSortBy = useMemo(
+    () => Object.keys(TOKEN_TABLE_SORT_MAP).find((k) => TOKEN_TABLE_SORT_MAP[k] === filters.sortBy) || null,
+    [filters.sortBy],
+  )
+
+  const tokenColumns = useMemo(
+    () => [
+      {
+        key: 'username',
+        header: 'Username',
+        sortable: true,
+        minWidth: 170,
+        render: (x) => <span className="admin-token-user">{x.username || x.userId}</span>,
+      },
+      {
+        key: 'email',
+        header: 'Email',
+        sortable: true,
+        minWidth: 240,
+        render: (x) => x.email,
+      },
+      {
+        key: 'tokens',
+        header: 'Tokens',
+        sortable: true,
+        minWidth: 120,
+        width: 130,
+        render: (x) => x.tokens,
+      },
+      {
+        key: 'usage',
+        header: 'Usage',
+        sortable: false,
+        minWidth: 220,
+        width: 240,
+        render: (x) => {
+          const percent = summary.max > 0 ? Math.round(((x.tokens || 0) / summary.max) * 100) : 0
+          return (
+            <div className="admin-token-bar-wrap">
+              <div className="admin-token-bar-bg">
+                <div className="admin-token-bar-fill" style={{ width: `${percent}%` }} />
+              </div>
+              <span className="admin-token-bar-num">{percent}%</span>
+            </div>
+          )
+        },
+      },
+    ],
+    [summary.max],
+  )
+
   return (
-    <div className="row g-3">
-      <div className="col-12">
-        <div className="d-flex align-items-center justify-content-between">
-          <h3 className="mb-0">{t('admin.tokens')}</h3>
-          <button className="btn btn-light btn-sm" type="button" onClick={load} disabled={loading}>
-            {t('admin.refresh')}
-          </button>
+    <div>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">{t('admin.tokens')}</h1>
+          <p className="admin-page-subtitle">{t('admin.total_tokens')}: <b>{summary.total}</b></p>
         </div>
-        <div className="text-secondary small mt-1">
-          {t('admin.total_tokens')}: <b>{stats?.totalTokens || 0}</b>
+        <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
+          <i className="ti ti-refresh" />
+          {t('admin.refresh')}
+        </button>
+      </div>
+
+      <div className="admin-stat-grid">
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--blue">
+            <i className="ti ti-coins" />
+          </div>
+          <span className="admin-stat-label">Total tokens</span>
+          <span className="admin-stat-value">{summary.total}</span>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--green">
+            <i className="ti ti-users-group" />
+          </div>
+          <span className="admin-stat-label">Tracked users</span>
+          <span className="admin-stat-value">{summary.userCount}</span>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--amber">
+            <i className="ti ti-chart-bar" />
+          </div>
+          <span className="admin-stat-label">Average / user</span>
+          <span className="admin-stat-value">{summary.avg}</span>
         </div>
       </div>
 
-      <div className="col-12">
-        <div className="card border-0 shadow-sm">
-          <div className="card-body">
-            <div className="row g-2 align-items-end mb-3">
-              <div className="col-12 col-md-6">
-                <label className="form-label small text-secondary mb-1">{t('admin.search')}</label>
-                <input
-                  className="form-control form-control-sm"
-                  value={filters.q}
-                  placeholder={t('admin.search_placeholder')}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
-                />
-              </div>
-              <div className="col-6 col-md-3">
-                <label className="form-label small text-secondary mb-1">{t('admin.sort_by')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.sortBy}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
-                >
-                  <option value="tokens">{t('admin.sort.tokens')}</option>
-                  <option value="email">{t('admin.sort.email')}</option>
-                  <option value="username">{t('admin.sort.username')}</option>
-                </select>
-              </div>
-              <div className="col-6 col-md-3">
-                <label className="form-label small text-secondary mb-1">{t('admin.sort_dir')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.sortDir}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sortDir: e.target.value }))}
-                >
-                  <option value="desc">{t('admin.desc')}</option>
-                  <option value="asc">{t('admin.asc')}</option>
-                </select>
-              </div>
-              <div className="col-12">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() => setFilters({ q: '', sortBy: 'tokens', sortDir: 'desc' })}
-                >
-                  {t('admin.clear')}
-                </button>
-              </div>
+      <div className="admin-card">
+        <div className="admin-card-body">
+          <div className="admin-filter-bar">
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.search')}</label>
+              <input
+                className="admin-input admin-input--search"
+                value={filters.q}
+                placeholder={t('admin.search_placeholder')}
+                onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
+              />
             </div>
 
-            {loading ? <div>Loading...</div> : null}
-            {error ? <div className="text-danger">Error: {error}</div> : null}
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.sort_by')}</label>
+              <select
+                className="admin-select"
+                value={filters.sortBy}
+                onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+              >
+                <option value="tokens">{t('admin.sort.tokens')}</option>
+                <option value="email">{t('admin.sort.email')}</option>
+                <option value="username">{t('admin.sort.username')}</option>
+              </select>
+            </div>
 
-            {!loading && !error ? (
-              <div className="table-responsive">
-                <table className="table table-sm align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Email</th>
-                      <th>Tokens</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(stats?.items || []).map((x) => (
-                      <tr key={x.userId}>
-                        <td>{x.username || x.userId}</td>
-                        <td>{x.email}</td>
-                        <td>{x.tokens}</td>
-                      </tr>
-                    ))}
-                    {(stats?.items || []).length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="text-secondary">
-                          No data yet
-                        </td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.sort_dir')}</label>
+              <select
+                className="admin-select"
+                value={filters.sortDir}
+                onChange={(e) => setFilters((prev) => ({ ...prev, sortDir: e.target.value }))}
+              >
+                <option value="desc">{t('admin.desc')}</option>
+                <option value="asc">{t('admin.asc')}</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost"
+              onClick={() => setFilters({ q: '', sortBy: 'tokens', sortDir: 'desc' })}
+            >
+              <i className="ti ti-filter-off" />
+              {t('admin.clear')}
+            </button>
           </div>
+
+          <AdminDataTable
+            columns={tokenColumns}
+            rows={stats?.items || []}
+            rowKey={(x) => x.userId}
+            loading={loading}
+            error={error ? `Error: ${error}` : ''}
+            emptyText="No data yet"
+            defaultPageSize={10}
+            pageSizeOptions={[10, 20, 50]}
+            manualSort
+            sortBy={activeTableSortBy}
+            sortDir={filters.sortDir}
+            onSortChange={({ sortBy, sortDir }) => {
+              const mapped = TOKEN_TABLE_SORT_MAP[sortBy]
+              if (!mapped) return
+              setFilters((prev) => ({ ...prev, sortBy: mapped, sortDir }))
+            }}
+          />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Show, UserButton, useAuth } from '@clerk/react'
 import { useBackendAuthSync } from '../../lib/useBackendAuthSync'
@@ -30,117 +30,150 @@ const AdminLayout = () => {
   const role = me?.role
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
-  if (!isLoaded) return 'Loading...'
+  const currentPageLabel = useMemo(() => {
+    if (location.pathname.startsWith('/admin/users')) return t('admin.users')
+    if (location.pathname.startsWith('/admin/tokens')) return t('admin.tokens')
+    if (location.pathname.startsWith('/dashboard')) return t('admin.back')
+    if (location.pathname.startsWith('/admin')) return 'Overview'
+    return location.pathname
+  }, [location.pathname, t])
+
+  if (!isLoaded) return <div className="admin-loading">Loading...</div>
   if (!userId) return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('access.denied_text')} />
-  if (userId && syncing) return 'Syncing session...'
-  if (userId && error) return `Auth error: ${error}`
-  if (!me) return 'Syncing session...'
+  if (userId && syncing) return <div className="admin-loading">Syncing session...</div>
+  if (userId && error) return <div className="admin-loading">Auth error: {error}</div>
+  if (!me) return <div className="admin-loading">Syncing session...</div>
 
   if (!isAdmin) {
     return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('admin.forbidden_text')} showSignIn={false} />
   }
 
-  const overlayShown = mobileOpen
+  const SIDEBAR_W = collapsed ? 76 : 248
 
   return (
     <div className="adminShell">
-      <div id="overlay" className={`overlay ${overlayShown ? 'show' : ''}`} onClick={() => setMobileOpen(false)} />
+      {mobileOpen ? (
+        <div
+          className="admin-mobile-overlay"
+          onClick={() => setMobileOpen(false)}
+        />
+      ) : null}
 
       <aside
-        id="sidebar"
-        className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-show' : ''}`}
+        className={`admin-sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}
+        style={{ width: SIDEBAR_W }}
       >
-        <div className="logo-area">
-          <span className="fw-bold">Admin</span>
-          <span className="logo-text text-secondary small">{me?.email}</span>
+        <div className="admin-sidebar-logo">
+          <div className="admin-brand-mark">
+            <i className="ti ti-compass" />
+          </div>
+          {!collapsed ? (
+            <div className="admin-brand-copy">
+              <span className="admin-sidebar-logo-title">Travel Admin</span>
+              <span className="admin-sidebar-logo-email">{me?.email}</span>
+            </div>
+          ) : null}
+          {collapsed ? <i className="ti ti-shield-lock admin-sidebar-logo-icon" /> : null}
         </div>
 
-        <div className="px-2 pt-3">
-          <div className="text-uppercase small text-secondary px-3 mb-2">Management</div>
+        <nav className="admin-sidebar-nav">
+          {!collapsed ? (
+            <div className="admin-sidebar-section-label">Control Center</div>
+          ) : null}
 
           <NavLink
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
             to="/admin/users"
             onClick={() => setMobileOpen(false)}
+            title={t('admin.users')}
           >
             <i className="ti ti-users" />
-            <span className="nav-text">{t('admin.users')}</span>
+            {!collapsed ? <span>{t('admin.users')}</span> : null}
           </NavLink>
 
           <NavLink
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
             to="/admin/tokens"
             onClick={() => setMobileOpen(false)}
+            title={t('admin.tokens')}
           >
-            <i className="ti ti-activity" />
-            <span className="nav-text">{t('admin.tokens')}</span>
+            <i className="ti ti-coins" />
+            {!collapsed ? <span>{t('admin.tokens')}</span> : null}
           </NavLink>
+
+          <div className="admin-sidebar-divider" />
 
           <NavLink
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
             to="/dashboard"
             onClick={() => setMobileOpen(false)}
+            title={t('admin.back')}
           >
             <i className="ti ti-arrow-back" />
-            <span className="nav-text">{t('admin.back')}</span>
+            {!collapsed ? <span>{t('admin.back')}</span> : null}
           </NavLink>
-        </div>
+        </nav>
+
+        {!collapsed ? (
+          <div className="admin-sidebar-footer">
+            <span className={`admin-role-badge admin-role-badge--${role?.toLowerCase()}`}>
+              {role}
+            </span>
+          </div>
+        ) : null}
       </aside>
 
-      <nav id="topbar" className={`navbar bg-body border-bottom fixed-top topbar px-3 ${collapsed ? 'full' : ''}`}>
-        <button
-          id="toggleBtn"
-          type="button"
-          className="d-none d-lg-inline-flex btn btn-light btn-icon btn-sm"
-          onClick={() => setCollapsed((v) => !v)}
-          aria-label="Toggle sidebar"
-        >
-          <i className="ti ti-layout-sidebar-left-expand" />
-        </button>
-
-        <button
-          id="mobileBtn"
-          type="button"
-          className="btn btn-light btn-icon btn-sm d-lg-none me-2"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Open sidebar"
-        >
-          <i className="ti ti-layout-sidebar-left-expand" />
-        </button>
-
-        <div className="ms-auto d-flex align-items-center gap-2">
+      <div className="admin-right">
+        <header className="admin-topbar">
           <button
-            type="button"
-            className="btn btn-light btn-sm"
-            onClick={() => setTheme(toggleTheme())}
-            aria-label="Toggle theme"
-            title="Toggle theme"
+            className="admin-topbar-btn d-none d-lg-flex"
+            onClick={() => setCollapsed((v) => !v)}
+            aria-label="Toggle sidebar"
           >
-            {theme === 'dark' ? 'Dark' : 'Light'}
+            <i className={`ti ${collapsed ? 'ti-layout-sidebar-left-expand' : 'ti-layout-sidebar-left-collapse'}`} />
           </button>
+
           <button
-            type="button"
-            className="btn btn-light btn-sm"
-            onClick={toggleLang}
-            aria-label="Toggle language"
-            title="Toggle language"
+            className="admin-topbar-btn d-lg-none"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open sidebar"
           >
-            {lang === 'en' ? 'EN' : 'VI'}
+            <i className="ti ti-layout-sidebar-left-expand" />
           </button>
-          <div className="small text-secondary d-none d-md-block">
-            {location.pathname}
+
+          <div className="admin-topbar-path">
+            <span className="admin-topbar-path-main">Admin</span>
+            <span className="admin-topbar-path-sep">/</span>
+            <span className="admin-topbar-path-sub">{currentPageLabel}</span>
           </div>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
-        </div>
-      </nav>
 
-      <main id="content" className={`content pt-4 ${collapsed ? 'full' : ''}`}>
-        <div style={{ paddingTop: 60 }} className="container-fluid">
-          <Outlet />
-        </div>
-      </main>
+          <div className="admin-topbar-actions">
+            <button
+              className="admin-topbar-btn"
+              onClick={() => setTheme(toggleTheme())}
+              title="Toggle theme"
+            >
+              <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'}`} />
+            </button>
+            <button
+              className="admin-topbar-btn admin-topbar-btn--text"
+              onClick={toggleLang}
+              title="Toggle language"
+            >
+              {lang === 'en' ? 'EN' : 'VI'}
+            </button>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </div>
+        </header>
+
+        <main className="admin-main">
+          <div className="admin-main-inner">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   )
 }

@@ -3,6 +3,14 @@ import { apiRequestBackend } from '../../lib/apiClient'
 import { getBackendAuth } from '../../lib/backendAuth'
 import { useNotify } from '../../components/notifications/useNotify'
 import { useI18n } from '../../lib/useI18n'
+import AdminDataTable from './AdminDataTable.jsx'
+
+const USER_TABLE_SORT_MAP = {
+  username: 'username',
+  email: 'email',
+  role: 'role',
+  status: 'bannedAt',
+}
 
 const AdminUsersPage = () => {
   const me = useMemo(() => getBackendAuth()?.user || null, [])
@@ -54,6 +62,23 @@ const AdminUsersPage = () => {
   useEffect(() => {
     load()
   }, [load])
+
+  const summary = useMemo(() => {
+    const total = users.length
+    const banned = users.filter((u) => u.banned).length
+    const admins = users.filter((u) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length
+    return {
+      total,
+      banned,
+      active: total - banned,
+      admins,
+    }
+  }, [users])
+
+  const activeTableSortBy = useMemo(
+    () => Object.keys(USER_TABLE_SORT_MAP).find((k) => USER_TABLE_SORT_MAP[k] === filters.sortBy) || null,
+    [filters.sortBy],
+  )
 
   const updateRole = async (id, role) => {
     setSavingId(id)
@@ -110,197 +135,241 @@ const AdminUsersPage = () => {
     await updateRole(u.id, nextRole)
   }
 
+  const userColumns = [
+    {
+      key: 'username',
+      header: 'Username',
+      sortable: true,
+      minWidth: 160,
+      render: (u) => u.username,
+    },
+    {
+      key: 'email',
+      header: 'Email',
+      sortable: true,
+      minWidth: 240,
+      render: (u) => u.email,
+    },
+    {
+      key: 'role',
+      header: 'Role',
+      sortable: true,
+      width: 150,
+      minWidth: 140,
+      render: (u) => (
+        <span className={`admin-badge admin-badge--${String(u.role).toLowerCase()}`}>
+          {u.role}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      width: 120,
+      minWidth: 120,
+      sortValue: (u) => (u.banned ? 1 : 0),
+      render: (u) =>
+        u.banned ? (
+          <span className="admin-badge admin-badge--banned">BANNED</span>
+        ) : (
+          <span className="admin-badge admin-badge--active">ACTIVE</span>
+        ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      sortable: false,
+      minWidth: 360,
+      width: 390,
+      render: (u) => {
+        const actorRole = me?.role
+        const canBanThisUser =
+          actorRole === 'SUPER_ADMIN' ? true : actorRole === 'ADMIN' ? u.role === 'USER' : false
+
+        return (
+          <div className="admin-row-actions">
+            <select
+              className="admin-role-select"
+              style={{ maxWidth: 200 }}
+              value={pendingRoleById[u.id] ?? u.role}
+              disabled={!canManageRoles || savingId === u.id}
+              onChange={(e) =>
+                setPendingRoleById((prev) => ({ ...prev, [u.id]: e.target.value }))
+              }
+              aria-label={`Change role for ${u.email}`}
+            >
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+            </select>
+            {canManageRoles ? (
+              <button
+                type="button"
+                className="admin-btn admin-btn--primary admin-btn--sm"
+                disabled={savingId === u.id || (pendingRoleById[u.id] ?? u.role) === u.role}
+                onClick={() => confirmAndUpdateRole(u)}
+              >
+                {t('admin.apply')}
+              </button>
+            ) : null}
+            {savingId === u.id ? <span className="admin-action-note">{t('admin.saving')}</span> : null}
+            {canBanThisUser ? (
+              <button
+                type="button"
+                className={`admin-btn admin-btn--sm ${u.banned ? 'admin-btn--success' : 'admin-btn--danger'}`}
+                disabled={savingId === u.id}
+                onClick={() => setBan(u, !u.banned)}
+              >
+                {u.banned ? 'Unban' : 'Ban'}
+              </button>
+            ) : null}
+          </div>
+        )
+      },
+    },
+  ]
+
   return (
-    <div className="row g-3">
-      <div className="col-12">
-        <div className="d-flex align-items-center justify-content-between">
-          <h3 className="mb-0">{t('admin.users')}</h3>
-          <button className="btn btn-light btn-sm" type="button" onClick={load} disabled={loading}>
-            {t('admin.refresh')}
-          </button>
+    <div>
+      <div className="admin-page-header">
+        <div>
+          <h1 className="admin-page-title">{t('admin.users')}</h1>
+          <p className="admin-page-subtitle">{t('admin.role_policy')}</p>
         </div>
-        <div className="text-secondary small mt-1">
-          {t('admin.role_policy')}
+        <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
+          <i className="ti ti-refresh" />
+          {t('admin.refresh')}
+        </button>
+      </div>
+
+      <div className="admin-stat-grid">
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--blue">
+            <i className="ti ti-users" />
+          </div>
+          <span className="admin-stat-label">Total users</span>
+          <span className="admin-stat-value">{summary.total}</span>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--green">
+            <i className="ti ti-circle-check" />
+          </div>
+          <span className="admin-stat-label">Active users</span>
+          <span className="admin-stat-value">{summary.active}</span>
+        </div>
+        <div className="admin-stat-card">
+          <div className="admin-stat-icon admin-stat-icon--amber">
+            <i className="ti ti-user-star" />
+          </div>
+          <span className="admin-stat-label">Admin accounts</span>
+          <span className="admin-stat-value">{summary.admins}</span>
         </div>
       </div>
 
-      <div className="col-12">
-        <div className="card border-0 shadow-sm">
-          <div className="card-body">
-            <div className="row g-2 align-items-end mb-3">
-              <div className="col-12 col-md-4">
-                <label className="form-label small text-secondary mb-1">{t('admin.search')}</label>
-                <input
-                  className="form-control form-control-sm"
-                  value={filters.q}
-                  placeholder={t('admin.search_placeholder')}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
-                />
-              </div>
-              <div className="col-6 col-md-2">
-                <label className="form-label small text-secondary mb-1">{t('admin.filter_role')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.role}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
-                >
-                  <option value="">{t('admin.all')}</option>
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                </select>
-              </div>
-              <div className="col-6 col-md-2">
-                <label className="form-label small text-secondary mb-1">{t('admin.filter_status')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.banned}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, banned: e.target.value }))}
-                >
-                  <option value="">{t('admin.all')}</option>
-                  <option value="false">{t('admin.status_active')}</option>
-                  <option value="true">{t('admin.status_banned')}</option>
-                </select>
-              </div>
-              <div className="col-6 col-md-2">
-                <label className="form-label small text-secondary mb-1">{t('admin.sort_by')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.sortBy}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
-                >
-                  <option value="createdAt">{t('admin.sort.createdAt')}</option>
-                  <option value="email">{t('admin.sort.email')}</option>
-                  <option value="username">{t('admin.sort.username')}</option>
-                  <option value="role">{t('admin.sort.role')}</option>
-                  <option value="bannedAt">{t('admin.sort.bannedAt')}</option>
-                </select>
-              </div>
-              <div className="col-6 col-md-2">
-                <label className="form-label small text-secondary mb-1">{t('admin.sort_dir')}</label>
-                <select
-                  className="form-select form-select-sm"
-                  value={filters.sortDir}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, sortDir: e.target.value }))}
-                >
-                  <option value="desc">{t('admin.desc')}</option>
-                  <option value="asc">{t('admin.asc')}</option>
-                </select>
-              </div>
-              <div className="col-12">
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm"
-                  onClick={() =>
-                    setFilters({
-                      q: '',
-                      role: '',
-                      banned: '',
-                      sortBy: 'createdAt',
-                      sortDir: 'desc',
-                    })
-                  }
-                >
-                  {t('admin.clear')}
-                </button>
-              </div>
+      <div className="admin-card">
+        <div className="admin-card-body">
+          <div className="admin-filter-bar">
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.search')}</label>
+              <input
+                className="admin-input admin-input--search"
+                value={filters.q}
+                placeholder={t('admin.search_placeholder')}
+                onChange={(e) => setFilters((prev) => ({ ...prev, q: e.target.value }))}
+              />
             </div>
 
-            {loading ? <div>Loading...</div> : null}
-            {error ? <div className="text-danger">Error: {error}</div> : null}
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.filter_role')}</label>
+              <select
+                className="admin-select"
+                value={filters.role}
+                onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
+              >
+                <option value="">{t('admin.all')}</option>
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              </select>
+            </div>
 
-            {!loading && !error ? (
-              <div className="table-responsive">
-                <table className="table table-sm align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Status</th>
-                      <th style={{ width: 360 }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.map((u) => (
-                      <tr key={u.id}>
-                        <td>{u.username}</td>
-                        <td>{u.email}</td>
-                        <td>
-                          <span className="badge text-bg-light">{u.role}</span>
-                        </td>
-                        <td>
-                          {u.banned ? (
-                            <span className="badge text-bg-danger">BANNED</span>
-                          ) : (
-                            <span className="badge text-bg-success">ACTIVE</span>
-                          )}
-                        </td>
-                        <td>
-                          {(() => {
-                            const actorRole = me?.role
-                            const canBanThisUser =
-                              actorRole === 'SUPER_ADMIN' ? true : actorRole === 'ADMIN' ? u.role === 'USER' : false
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.filter_status')}</label>
+              <select
+                className="admin-select"
+                value={filters.banned}
+                onChange={(e) => setFilters((prev) => ({ ...prev, banned: e.target.value }))}
+              >
+                <option value="">{t('admin.all')}</option>
+                <option value="false">{t('admin.status_active')}</option>
+                <option value="true">{t('admin.status_banned')}</option>
+              </select>
+            </div>
 
-                            return (
-                          <div className="d-flex align-items-center gap-2">
-                            <select
-                              className="form-select form-select-sm"
-                              style={{ maxWidth: 220 }}
-                              value={pendingRoleById[u.id] ?? u.role}
-                              disabled={!canManageRoles || savingId === u.id}
-                              onChange={(e) =>
-                                setPendingRoleById((prev) => ({ ...prev, [u.id]: e.target.value }))
-                              }
-                              aria-label={`Change role for ${u.email}`}
-                            >
-                              <option value="USER">USER</option>
-                              <option value="ADMIN">ADMIN</option>
-                              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
-                            </select>
-                            {canManageRoles ? (
-                              <button
-                                type="button"
-                                className="btn btn-primary btn-sm"
-                                disabled={
-                                  savingId === u.id || (pendingRoleById[u.id] ?? u.role) === u.role
-                                }
-                                onClick={() => confirmAndUpdateRole(u)}
-                              >
-                                {t('admin.apply')}
-                              </button>
-                            ) : null}
-                            {savingId === u.id ? (
-                              <span className="text-secondary small">{t('admin.saving')}</span>
-                            ) : null}
-                            {canBanThisUser ? (
-                              <button
-                                type="button"
-                                className={`btn btn-sm ${u.banned ? 'btn-outline-success' : 'btn-outline-danger'}`}
-                                disabled={savingId === u.id}
-                                onClick={() => setBan(u, !u.banned)}
-                              >
-                                {u.banned ? 'Unban' : 'Ban'}
-                              </button>
-                            ) : null}
-                          </div>
-                            )
-                          })()}
-                        </td>
-                      </tr>
-                    ))}
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="text-secondary">
-                          No users
-                        </td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.sort_by')}</label>
+              <select
+                className="admin-select"
+                value={filters.sortBy}
+                onChange={(e) => setFilters((prev) => ({ ...prev, sortBy: e.target.value }))}
+              >
+                <option value="createdAt">{t('admin.sort.createdAt')}</option>
+                <option value="email">{t('admin.sort.email')}</option>
+                <option value="username">{t('admin.sort.username')}</option>
+                <option value="role">{t('admin.sort.role')}</option>
+                <option value="bannedAt">{t('admin.sort.bannedAt')}</option>
+              </select>
+            </div>
+
+            <div className="admin-filter-group">
+              <label className="admin-filter-label">{t('admin.sort_dir')}</label>
+              <select
+                className="admin-select"
+                value={filters.sortDir}
+                onChange={(e) => setFilters((prev) => ({ ...prev, sortDir: e.target.value }))}
+              >
+                <option value="desc">{t('admin.desc')}</option>
+                <option value="asc">{t('admin.asc')}</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost"
+              onClick={() =>
+                setFilters({
+                  q: '',
+                  role: '',
+                  banned: '',
+                  sortBy: 'createdAt',
+                  sortDir: 'desc',
+                })
+              }
+            >
+              <i className="ti ti-filter-off" />
+              {t('admin.clear')}
+            </button>
           </div>
+
+          <AdminDataTable
+            columns={userColumns}
+            rows={users}
+            rowKey={(u) => u.id}
+            loading={loading}
+            error={error ? `Error: ${error}` : ''}
+            emptyText="No users"
+            defaultPageSize={10}
+            pageSizeOptions={[10, 20, 50]}
+            manualSort
+            sortBy={activeTableSortBy}
+            sortDir={filters.sortDir}
+            onSortChange={({ sortBy, sortDir }) => {
+              const mapped = USER_TABLE_SORT_MAP[sortBy]
+              if (!mapped) return
+              setFilters((prev) => ({ ...prev, sortBy: mapped, sortDir }))
+            }}
+          />
         </div>
       </div>
     </div>
