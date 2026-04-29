@@ -51,13 +51,13 @@ const AdminUsersPage = () => {
       for (const u of items) nextPending[u.id] = u.role
       setPendingRoleById(nextPending)
     } catch (err) {
-      const msg = err?.message || 'Failed to load users'
+      const msg = err?.message || t('admin.load_users_fail')
       setError(msg)
       notify.error(msg)
     } finally {
       setLoading(false)
     }
-  }, [filters, notify])
+  }, [filters, notify, t])
 
   useEffect(() => {
     load()
@@ -88,7 +88,7 @@ const AdminUsersPage = () => {
       await load()
       notify.success(t('admin.updated_role'))
     } catch (err) {
-      const msg = err?.message || 'Failed to update role'
+      const msg = err?.message || t('admin.update_role_fail')
       setError(msg)
       notify.error(msg)
     } finally {
@@ -101,20 +101,20 @@ const AdminUsersPage = () => {
     setError('')
     try {
       if (ban) {
-        const reason = window.prompt(`Reason to ban ${u.email}? (optional)`) || ''
-        const ok = window.confirm(`Ban ${u.email}?`)
+        const reason = window.prompt(`${t('admin.ban_prompt_reason')} ${u.email}?`) || ''
+        const ok = window.confirm(`${t('admin.ban_confirm')} ${u.email}?`)
         if (!ok) return
         await apiRequestBackend(`/api/admin/users/${u.id}/ban`, { method: 'POST', body: { reason } })
-        notify.success('User banned.')
+        notify.success(t('admin.user_banned'))
       } else {
-        const ok = window.confirm(`Unban ${u.email}?`)
+        const ok = window.confirm(`${t('admin.unban_confirm')} ${u.email}?`)
         if (!ok) return
         await apiRequestBackend(`/api/admin/users/${u.id}/unban`, { method: 'POST' })
-        notify.success('User unbanned.')
+        notify.success(t('admin.user_unbanned'))
       }
       await load()
     } catch (err) {
-      const msg = err?.message || 'Failed to update ban status'
+      const msg = err?.message || t('admin.update_ban_fail')
       setError(msg)
       notify.error(msg)
     } finally {
@@ -138,21 +138,21 @@ const AdminUsersPage = () => {
   const userColumns = [
     {
       key: 'username',
-      header: 'Username',
+      header: t('admin.table.username'),
       sortable: true,
       minWidth: 160,
       render: (u) => u.username,
     },
     {
       key: 'email',
-      header: 'Email',
+      header: t('admin.table.email'),
       sortable: true,
       minWidth: 240,
       render: (u) => u.email,
     },
     {
       key: 'role',
-      header: 'Role',
+      header: t('admin.table.role'),
       sortable: true,
       width: 150,
       minWidth: 140,
@@ -164,21 +164,21 @@ const AdminUsersPage = () => {
     },
     {
       key: 'status',
-      header: 'Status',
+      header: t('admin.table.status'),
       sortable: true,
       width: 120,
       minWidth: 120,
       sortValue: (u) => (u.banned ? 1 : 0),
       render: (u) =>
         u.banned ? (
-          <span className="admin-badge admin-badge--banned">BANNED</span>
+          <span className="admin-badge admin-badge--banned">{t('admin.status_banned_short')}</span>
         ) : (
-          <span className="admin-badge admin-badge--active">ACTIVE</span>
+          <span className="admin-badge admin-badge--active">{t('admin.status_active_short')}</span>
         ),
     },
     {
       key: 'actions',
-      header: 'Actions',
+      header: t('admin.table.actions'),
       sortable: false,
       minWidth: 360,
       width: 390,
@@ -221,7 +221,7 @@ const AdminUsersPage = () => {
                 disabled={savingId === u.id}
                 onClick={() => setBan(u, !u.banned)}
               >
-                {u.banned ? 'Unban' : 'Ban'}
+                {u.banned ? t('admin.unban') : t('admin.ban')}
               </button>
             ) : null}
           </div>
@@ -248,21 +248,21 @@ const AdminUsersPage = () => {
           <div className="admin-stat-icon admin-stat-icon--blue">
             <i className="ti ti-users" />
           </div>
-          <span className="admin-stat-label">Total users</span>
+          <span className="admin-stat-label">{t('admin.total_users')}</span>
           <span className="admin-stat-value">{summary.total}</span>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon admin-stat-icon--green">
             <i className="ti ti-circle-check" />
           </div>
-          <span className="admin-stat-label">Active users</span>
+          <span className="admin-stat-label">{t('admin.active_users')}</span>
           <span className="admin-stat-value">{summary.active}</span>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon admin-stat-icon--amber">
             <i className="ti ti-user-star" />
           </div>
-          <span className="admin-stat-label">Admin accounts</span>
+          <span className="admin-stat-label">{t('admin.admin_accounts')}</span>
           <span className="admin-stat-value">{summary.admins}</span>
         </div>
       </div>
@@ -357,8 +357,8 @@ const AdminUsersPage = () => {
             rows={users}
             rowKey={(u) => u.id}
             loading={loading}
-            error={error ? `Error: ${error}` : ''}
-            emptyText="No users"
+            error={error ? `${t('common.error')}: ${error}` : ''}
+            emptyText={t('admin.no_users')}
             defaultPageSize={10}
             pageSizeOptions={[10, 20, 50]}
             manualSort

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import './newPrompt.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
+import { useI18n } from '../../lib/useI18n'
 
 function parsePlanInput(text) {
   const lines = String(text || '')
@@ -30,15 +31,11 @@ function parsePlanInput(text) {
 }
 
 const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
-  const endRef = useRef(null)
   const notify = useNotify()
+  const { t } = useI18n()
   const [text, setText] = useState('')
   const [pending, setPending] = useState(false)
   const planInput = useMemo(() => parsePlanInput(text), [text])
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [text])
 
   const submit = async (e) => {
     e.preventDefault()
@@ -46,7 +43,7 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
     const msg = text.trim()
     if (!msg) return
     if (!Number.isFinite(chatId)) {
-      notify.error('Invalid chatId')
+      notify.error(t('prompt.invalid_chat'))
       return
     }
 
@@ -96,7 +93,7 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
         }
       }
     } catch (err) {
-      notify.error(err?.message || 'Request failed')
+      notify.error(err?.message || t('prompt.request_failed'))
       setText(msg)
     } finally {
       setPending(false)
@@ -105,32 +102,25 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
   }
 
   return (
-    <>
-      <div className="endChat" ref={endRef}></div>
-      <div className="newPrompt">
-        <form className="newForm" onSubmit={submit}>
-          {/* <label htmlFor="file">
-            <img src="/attachment.png" alt="" />
-          </label> */}
-          <input id='file' type="file" multiple={false} hidden />
-          <textarea
-            name="text"
-            placeholder={
-              planInput
-                ? 'Plan input detected: will generate trip plan (origin/destination/duration...)'
-                : 'Ask anything...'
-            }
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            rows={1}
-            disabled={pending}
-          />
-          <button disabled={pending} aria-label={pending ? 'Sending' : 'Send'}>
-            <img src="/arrow.png" alt="" />
-          </button>
-        </form>
-      </div>
-    </>
+    <div className="newPrompt">
+      <form className="newForm" onSubmit={submit}>
+        <textarea
+          name="text"
+          placeholder={
+            planInput
+              ? t('prompt.plan_detected')
+              : t('prompt.ask_anything')
+          }
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          disabled={pending}
+        />
+        <button disabled={pending} aria-label={pending ? t('prompt.sending') : t('prompt.send')}>
+          <i className="ti ti-arrow-up" />
+        </button>
+      </form>
+    </div>
   )
 }
 

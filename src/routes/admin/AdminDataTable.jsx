@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useI18n } from '../../lib/useI18n'
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value))
 
@@ -16,7 +17,7 @@ const AdminDataTable = ({
     rowKey = 'id',
     loading = false,
     error = '',
-    emptyText = 'No data',
+    emptyText = '',
     defaultPageSize = 10,
     pageSizeOptions = [10, 20, 50],
     manualSort = false,
@@ -24,11 +25,13 @@ const AdminDataTable = ({
     sortDir = 'asc',
     onSortChange,
 }) => {
+    const { t } = useI18n()
     const [page, setPage] = useState(1)
     const [pageSize, setPageSize] = useState(defaultPageSize)
     const [innerSort, setInnerSort] = useState({ by: null, dir: 'asc' })
     const [columnWidths, setColumnWidths] = useState({})
     const resizeRef = useRef(null)
+    const resolvedEmptyText = emptyText || t('admin.no_data')
 
     const activeSortBy = onSortChange ? sortBy : innerSort.by
     const activeSortDir = onSortChange ? sortDir : innerSort.dir
@@ -176,7 +179,7 @@ const AdminDataTable = ({
                         {loading ? (
                             <tr>
                                 <td colSpan={columns.length}>
-                                    <div className="admin-loading-row">Loading...</div>
+                                    <div className="admin-loading-row">{t('admin.loading')}</div>
                                 </td>
                             </tr>
                         ) : null}
@@ -192,7 +195,7 @@ const AdminDataTable = ({
                         {!loading && !error && pageRows.length === 0 ? (
                             <tr>
                                 <td colSpan={columns.length}>
-                                    <div className="admin-empty-inline">{emptyText}</div>
+                                    <div className="admin-empty-inline">{resolvedEmptyText}</div>
                                 </td>
                             </tr>
                         ) : null}
@@ -214,10 +217,12 @@ const AdminDataTable = ({
 
             <div className="admin-table-footer">
                 <div className="admin-table-meta">
-                    {total > 0 ? `Showing ${startIdx}-${endIdx} of ${total}` : 'Showing 0 of 0'}
+                    {total > 0
+                        ? `${t('admin.showing')} ${startIdx}-${endIdx} / ${total}`
+                        : `${t('admin.showing')} 0 / 0`}
                 </div>
                 <div className="admin-table-controls">
-                    <label className="admin-table-size-label">Rows</label>
+                    <label className="admin-table-size-label">{t('admin.rows')}</label>
                     <select
                         className="admin-page-size"
                         value={pageSize}

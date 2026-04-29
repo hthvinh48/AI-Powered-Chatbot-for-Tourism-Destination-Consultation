@@ -1,218 +1,300 @@
 .dashboardPage {
-    height: 100%;
-    display: flex;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.dashboardHero {
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, rgba(47, 120, 238, 0.14), rgba(26, 171, 142, 0.12));
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dashboardHeroCopy h1 {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  color: var(--app-fg);
+  margin-bottom: 8px;
+}
+
+.dashboardHeroCopy p {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 56ch;
+}
+
+.dashboardSavedBtn {
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dashboardSavedBtn:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.dashboardSavedBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dashboardQuickActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboardQuickAction {
+  min-height: 72px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  color: var(--app-fg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.dashboardQuickAction i {
+  font-size: 18px;
+  color: #5ba5ff;
+}
+
+.dashboardQuickAction span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.dashboardQuickAction:hover {
+  border-color: var(--accent-hover-border);
+  background: var(--accent-hover-bg);
+  transform: translateY(-1px);
+}
+
+.dashboardQuickAction:hover span {
+  color: var(--app-fg);
+}
+
+.dashboardComposer {
+  margin-top: auto;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  padding: 8px;
+}
+
+.dashboardComposer form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.dashboardComposer textarea {
+  flex: 1;
+  min-height: 46px;
+  max-height: 180px;
+  padding: 10px 12px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--app-fg);
+  outline: none;
+  resize: vertical;
+}
+
+.dashboardComposer textarea::placeholder {
+  color: var(--text-placeholder);
+}
+
+.dashboardComposer textarea:focus {
+  border-color: var(--accent-hover-border);
+}
+
+.dashboardComposer button {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid #2f78ee;
+  background: #2f78ee;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboardComposer button:hover {
+  background: #2565c8;
+  border-color: #2565c8;
+}
+
+.savedOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.56);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 70;
+}
+
+.savedModal {
+  width: min(980px, 96vw);
+  max-height: 88vh;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  padding: 14px;
+}
+
+.savedTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 8px;
+}
+
+.savedTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.savedTopActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.savedBtn {
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.savedBtn:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.savedBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.savedBtnIcon {
+  width: 34px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.savedHint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.savedList {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.savedItem {
+  border-top: 1px solid var(--divider);
+  padding-top: 12px;
+}
+
+.savedItemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.savedItemTitle {
+  border: 0;
+  background: transparent;
+  color: #5aa3ff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.savedItemTitle:hover {
+  text-decoration: underline;
+}
+
+.savedItemDelete {
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: transparent;
+  color: #ef6f6f;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.savedItemDelete:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+@media (max-width: 768px) {
+  .dashboardPage {
+    padding: 12px;
+  }
+
+  .dashboardHero {
     flex-direction: column;
-    align-items: center;
-    /* background: var(--surface-2); */
-    border-radius: 20px;
+  }
 
-    .texts {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 70%;
-        gap: 50px;
+  .dashboardSavedBtn {
+    width: 100%;
+    justify-content: center;
+  }
 
-        .logo {
-            display: flex;
-            gap: 20px;
-            opacity: 0.4;
-
-            img {
-                width: 64px;
-                height: 64px;
-            }
-
-            h1 {
-                font-size: 64px;
-                background: linear-gradient(to right, #217bfe, #e55571);
-                background-clip: text;
-                -webkit-background-clip: text;
-                color: transparent;
-            }
-        }
-
-        .options {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-
-            .option {
-                flex: 1;
-                display: flex;
-                align-items: center;
-                flex-direction: column;
-                gap: 12px;
-                font-weight: 300;
-                font-size: 14px;
-                color: var(--text-muted);
-                padding: 20px;
-                border: 1px solid var(--border);
-                border-radius: 16px;
-                background: var(--hover-bg);
-                cursor: pointer;
-                outline: none;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                box-shadow:
-                    0 2px 6px rgba(0, 0, 0, 0.05),
-                    0 10px 24px rgba(0, 0, 0, 0.08);
-                transition: all 0.25s ease;
-
-                &:hover {
-                    background: var(--accent-hover-bg);
-                    border-color: var(--accent-hover-border);
-                    color: var(--app-fg);
-                    transform: translateY(-2px);
-                }
-
-                img {
-                    width: 40px;
-                    height: 40px;
-                    object-fit: contain;
-                }
-            }
-        }
-
-        .savedTripsLink {
-            margin-top: -20px;
-            border: 1px solid var(--control-border);
-            background: var(--control-bg);
-            color: var(--app-fg);
-            border-radius: 12px;
-            padding: 10px 12px;
-            cursor: pointer;
-        }
-    }
-
-    .formContainer {
-        margin-top: auto;
-        width: 70%;
-        background-color: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        margin-bottom: 30px;
-
-        form {
-            border-radius: 20px;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 5px 5px 5px 20px;
-            background: var(--hover-bg);
-            outline: none;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow:
-                0 2px 6px rgba(0, 0, 0, 0.05),
-                0 10px 24px rgba(0, 0, 0, 0.08);
-            transition: all 0.25s ease;
-
-            input,
-            textarea {
-                flex: 1;
-                padding: 15px 0;
-                background-color: transparent;
-                border: none;
-                outline: none;
-                color: var(--app-fg);
-                font-size: 14px;
-                resize: none;
-
-                &::placeholder {
-                    color: var(--text-placeholder);
-                }
-            }
-
-            button {
-                background: linear-gradient(135deg, #217bfe, #6a4cff);
-                border-radius: 50%;
-                border: none;
-                cursor: pointer;
-                padding: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-right: 8px;
-                transition: opacity 0.2s ease;
-
-                &:hover {
-                    opacity: 0.85;
-                }
-
-                img {
-                    width: 16px;
-                    height: 16px;
-                }
-            }
-        }
-    }
-
-    .savedOverlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.55);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 18px;
-        z-index: 70;
-    }
-
-    .savedModal {
-        width: min(980px, 96vw);
-        max-height: 86vh;
-        overflow: auto;
-        background: var(--surface-2);
-        border: 1px solid var(--glass-border);
-        border-radius: 18px;
-        padding: 14px;
-    }
-
-    .savedTop {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--glass-border);
-    }
-
-    .savedTitle {
-        font-weight: 800;
-    }
-
-    .savedTopActions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .savedBtn {
-        border: 1px solid var(--control-border);
-        background: var(--control-bg);
-        color: inherit;
-        height: 34px;
-        border-radius: 10px;
-        cursor: pointer;
-        padding: 0 12px;
-    }
-
-    .savedHint {
-        margin-top: 10px;
-        font-size: 12px;
-        opacity: 0.85;
-    }
-
-    .savedList {
-        margin-top: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
+  .dashboardQuickActions {
+    grid-template-columns: 1fr;
+  }
 }

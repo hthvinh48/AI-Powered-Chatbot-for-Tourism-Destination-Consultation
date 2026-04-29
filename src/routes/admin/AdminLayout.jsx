@@ -34,15 +34,15 @@ const AdminLayout = () => {
     if (location.pathname.startsWith('/admin/users')) return t('admin.users')
     if (location.pathname.startsWith('/admin/tokens')) return t('admin.tokens')
     if (location.pathname.startsWith('/dashboard')) return t('admin.back')
-    if (location.pathname.startsWith('/admin')) return 'Overview'
+    if (location.pathname.startsWith('/admin')) return t('admin.overview')
     return location.pathname
   }, [location.pathname, t])
 
-  if (!isLoaded) return <div className="admin-loading">Loading...</div>
+  if (!isLoaded) return <div className="admin-loading">{t('common.loading')}</div>
   if (!userId) return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('access.denied_text')} />
-  if (userId && syncing) return <div className="admin-loading">Syncing session...</div>
-  if (userId && error) return <div className="admin-loading">Auth error: {error}</div>
-  if (!me) return <div className="admin-loading">Syncing session...</div>
+  if (userId && syncing) return <div className="admin-loading">{t('common.syncing')}</div>
+  if (userId && error) return <div className="admin-loading">{t('common.auth_error')}: {error}</div>
+  if (!me) return <div className="admin-loading">{t('common.syncing')}</div>
 
   if (!isAdmin) {
     return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('admin.forbidden_text')} showSignIn={false} />
@@ -69,7 +69,7 @@ const AdminLayout = () => {
           </div>
           {!collapsed ? (
             <div className="admin-brand-copy">
-              <span className="admin-sidebar-logo-title">Travel Admin</span>
+              <span className="admin-sidebar-logo-title">{t('admin.brand')}</span>
               <span className="admin-sidebar-logo-email">{me?.email}</span>
             </div>
           ) : null}
@@ -78,7 +78,7 @@ const AdminLayout = () => {
 
         <nav className="admin-sidebar-nav">
           {!collapsed ? (
-            <div className="admin-sidebar-section-label">Control Center</div>
+            <div className="admin-sidebar-section-label">{t('admin.control_center')}</div>
           ) : null}
 
           <NavLink
@@ -128,7 +128,7 @@ const AdminLayout = () => {
           <button
             className="admin-topbar-btn d-none d-lg-flex"
             onClick={() => setCollapsed((v) => !v)}
-            aria-label="Toggle sidebar"
+            aria-label={t('admin.toggle_sidebar')}
           >
             <i className={`ti ${collapsed ? 'ti-layout-sidebar-left-expand' : 'ti-layout-sidebar-left-collapse'}`} />
           </button>
@@ -136,13 +136,13 @@ const AdminLayout = () => {
           <button
             className="admin-topbar-btn d-lg-none"
             onClick={() => setMobileOpen(true)}
-            aria-label="Open sidebar"
+            aria-label={t('admin.open_sidebar')}
           >
             <i className="ti ti-layout-sidebar-left-expand" />
           </button>
 
           <div className="admin-topbar-path">
-            <span className="admin-topbar-path-main">Admin</span>
+            <span className="admin-topbar-path-main">{t('menu.admin')}</span>
             <span className="admin-topbar-path-sep">/</span>
             <span className="admin-topbar-path-sub">{currentPageLabel}</span>
           </div>
@@ -151,14 +151,14 @@ const AdminLayout = () => {
             <button
               className="admin-topbar-btn"
               onClick={() => setTheme(toggleTheme())}
-              title="Toggle theme"
+              title={t('nav.toggle_theme')}
             >
               <i className={`ti ${theme === 'dark' ? 'ti-sun' : 'ti-moon'}`} />
             </button>
             <button
               className="admin-topbar-btn admin-topbar-btn--text"
               onClick={toggleLang}
-              title="Toggle language"
+              title={t('nav.toggle_language')}
             >
               {lang === 'en' ? 'EN' : 'VI'}
             </button>

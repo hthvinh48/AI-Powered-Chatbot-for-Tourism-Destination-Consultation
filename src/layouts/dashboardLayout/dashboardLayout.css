@@ -1,19 +1,49 @@
+.dashboardStatus {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
 .dashboardLayout {
-    display: flex;
-    gap: 50px;
-    padding-top: 14px;
-    height: 100%;
-    /* background-color: #212126; */
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(250px, 296px) minmax(0, 1fr);
+  gap: 12px;
+  overflow: hidden;
+}
 
-    .menu {
-        flex: 3;
-    }
+.dashboardSidebar {
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-    .content {
-        flex: 7;
-        background-color: var(--surface-1);
-        color: var(--app-fg);
-        border-bottom-left-radius: 20px;
-        border-bottom-right-radius: 20px;
-    }
+.dashboardContent {
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardSidebar {
+    max-height: 280px;
+  }
 }

@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@clerk/react": "^6.0.1",
+    "@popperjs/core": "^2.11.8",
     "@tabler/icons-webfont": "^3.34.1",
     "@tanstack/react-query": "^5.90.21",
+    "apexcharts": "^5.10.6",
     "bootstrap": "^5.3.8",
     "react": "19.0.0-rc-8b08e99e-20240713",
     "react-dom": "19.0.0-rc-8b08e99e-20240713",

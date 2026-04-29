@@ -17,6 +17,7 @@ const RootLayout = () => {
   }
 
   const isAdminRoute = location.pathname.startsWith('/admin')
+  const isDashboardRoute = location.pathname.startsWith('/dashboard')
   const isAuthRoute =
     location.pathname.startsWith('/sign-in') || location.pathname.startsWith('/sign-up')
 
@@ -37,76 +38,64 @@ const RootLayout = () => {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <div className="rootLayout">
-        <header>
-          <Link to="/" className="logo">
-            <img src="/logo.png" alt="" />
+        <header className="rootHeader">
+          <Link to="/" className="rootLogo">
+            <img src="/logo.png" alt="TrAveI logo" />
             <span>TrAveI</span>
           </Link>
-          <div className="user">
+
+          <div className="rootHeaderActions">
             <button
               type="button"
               onClick={() => setTheme(toggleTheme())}
-              style={{
-                padding: '6px 10px',
-                borderRadius: 10,
-                border: '1px solid var(--control-border)',
-                background: 'var(--control-bg)',
-                color: 'inherit',
-                cursor: 'pointer',
-                marginRight: 12,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              }}
-              aria-label="Toggle theme"
-              title="Toggle theme"
-              className="headerBtn"
+              aria-label={t('nav.toggle_theme')}
+              title={t('nav.toggle_theme')}
+              className="rootIconBtn"
             >
-              {theme === "dark" ? <FiMoon /> : <FiSun />}
+              {theme === 'dark' ? <FiSun /> : <FiMoon />}
             </button>
 
             <button
               type="button"
               onClick={toggleLang}
-              style={{
-                padding: '6px 10px',
-                borderRadius: 10,
-                border: '1px solid var(--control-border)',
-                background: 'var(--control-bg)',
-                color: 'inherit',
-                cursor: 'pointer',
-                marginRight: 12,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              }}
-              aria-label="Toggle language"
-              title="Toggle language"
-              className="langToggle"
+              aria-label={t('nav.toggle_language')}
+              title={t('nav.toggle_language')}
+              className="rootLangBtn"
             >
-              {lang === "en" ? "EN" : "VI"}
+              {lang === 'en' ? 'EN' : 'VI'}
             </button>
 
             <Show when="signed-in">
-              <div className="userAvatar">
+              <div className="rootUserAvatar">
                 <UserButton
                   appearance={{
                     elements: {
                       avatarBox: {
-                        width: "36px",
-                        height: "36px",
+                        width: '34px',
+                        height: '34px',
                       },
                     },
-                  }} />
+                  }}
+                />
               </div>
             </Show>
+
             <Show when="signed-out">
               {!isAuthRoute ? (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <Link to="/sign-in">{t('nav.sign_in')}</Link>
-                  <Link to="/sign-up">{t('nav.sign_up')}</Link>
+                <div className="rootAuthLinks">
+                  <Link className="rootGhostLink" to="/sign-in">
+                    {t('nav.sign_in')}
+                  </Link>
+                  <Link className="rootPrimaryLink" to="/sign-up">
+                    {t('nav.sign_up')}
+                  </Link>
                 </div>
               ) : null}
             </Show>
           </div>
         </header>
-        <main>
+
+        <main className={`rootMain ${isDashboardRoute ? 'rootMain--app' : 'rootMain--public'}`}>
           <Outlet />
         </main>
       </div>

@@ -1,6 +1,79 @@
-.signInPage {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.authPage {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.authPanel {
+  width: min(1060px, 100%);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-1);
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  overflow: hidden;
+}
+
+.authCopy {
+  padding: clamp(24px, 4vw, 44px);
+  background: linear-gradient(135deg, rgba(47, 120, 238, 0.14), rgba(41, 204, 166, 0.12));
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+
+.authCopy h1 {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.08;
+  font-weight: 800;
+  color: var(--app-fg);
+}
+
+.authCopy p {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 40ch;
+}
+
+.authCard {
+  padding: clamp(20px, 3.2vw, 32px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+}
+
+.authCard .cl-card {
+  box-shadow: none;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+}
+
+:root[data-theme='light'] .authPanel {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 14px 32px rgba(20, 36, 54, 0.08);
+}
+
+:root[data-theme='light'] .authCopy {
+  background: linear-gradient(135deg, rgba(47, 120, 238, 0.12), rgba(41, 204, 166, 0.1));
+}
+
+:root[data-theme='light'] .authCard {
+  background: #f7fbff;
+}
+
+@media (max-width: 900px) {
+  .authPanel {
+    grid-template-columns: 1fr;
+  }
+
+  .authCopy {
+    border-right: 0;
+    border-bottom: 1px solid var(--glass-border);
+  }
 }

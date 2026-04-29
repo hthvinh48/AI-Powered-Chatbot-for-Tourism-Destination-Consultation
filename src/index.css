@@ -1,78 +1,115 @@
 * {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-*::-webkit-scrollbar {
-    display: none;
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 100%;
 }
 
 body {
-    background: var(--app-bg);
-    color: var(--app-fg);
-    font-family: "Inter", system-ui, sans-serif;
-    min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--app-fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.45;
 }
 
 a {
-    text-decoration: none;
-    color: inherit;
+  text-decoration: none;
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: var(--accent-selection);
+}
+
+/* Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 
 :root {
-    /* App shell */
-    --app-bg: linear-gradient(135deg, #0f172a, #1e1b4b);
-    --app-fg: #ececec;
+  --app-bg: #0f141d;
+  --app-fg: #e6edf6;
 
-    /* Surfaces */
-    --surface-1: #12101b;
-    --surface-2: #12172b;
-    --surface-3: #2c2937;
-    --divider: rgba(255, 255, 255, 0.12);
-    --border: rgba(255, 255, 255, 0.08);
+  --surface-1: #161f2a;
+  --surface-2: #1b2633;
+  --surface-3: #243244;
+  --surface-4: #2f4055;
 
-    /* Text */
-    --text-muted: #a8b3cf;
-    --text-placeholder: #555a6e;
+  --divider: rgba(147, 169, 194, 0.22);
+  --border: rgba(147, 169, 194, 0.24);
+  --glass-border: rgba(147, 169, 194, 0.22);
 
-    /* Controls */
-    --control-bg: transparent;
-    --control-border: rgba(255, 255, 255, 0.18);
-    --control-pill-bg: #605e68;
+  --text-muted: #9bb0ca;
+  --text-placeholder: #6d819d;
 
-    /* Effects */
-    --hover-bg: rgba(255, 255, 255, 0.06);
-    --hover-strong-bg: #2c2937;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --accent-hover-bg: rgba(33, 123, 254, 0.12);
-    --accent-hover-border: rgba(33, 123, 254, 0.4);
+  --control-bg: rgba(255, 255, 255, 0.02);
+  --control-border: rgba(147, 169, 194, 0.35);
+  --control-pill-bg: #305f9f;
+
+  --hover-bg: rgba(157, 178, 201, 0.12);
+  --hover-strong-bg: rgba(157, 178, 201, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --accent-hover-bg: rgba(74, 144, 255, 0.16);
+  --accent-hover-border: rgba(74, 144, 255, 0.45);
+  --accent-selection: rgba(74, 144, 255, 0.25);
+  --scroll-thumb: rgba(157, 178, 201, 0.45);
 }
 
-:root[data-theme="light"] {
-    --app-bg: linear-gradient(135deg, #f8fafc, #eef2ff);
-    --app-fg: #0f172a;
+:root[data-theme='light'] {
+  --app-bg: #f1f5fa;
+  --app-fg: #152436;
 
-    --surface-1: rgba(255, 255, 255, 0.85);
-    --surface-2: rgba(255, 255, 255, 0.92);
-    --surface-3: #eef2ff;
-    --divider: rgba(15, 23, 42, 0.12);
-    --border: rgba(15, 23, 42, 0.12);
+  --surface-1: #ffffff;
+  --surface-2: #f8fbff;
+  --surface-3: #eef3f9;
+  --surface-4: #e4ebf5;
 
-    --text-muted: #334155;
-    --text-placeholder: #64748b;
+  --divider: rgba(21, 36, 54, 0.12);
+  --border: rgba(21, 36, 54, 0.14);
+  --glass-border: rgba(21, 36, 54, 0.12);
 
-    --control-bg: rgba(255, 255, 255, 0.7);
-    --control-border: rgba(15, 23, 42, 0.18);
-    --control-pill-bg: rgba(15, 23, 42, 0.12);
+  --text-muted: #5b728f;
+  --text-placeholder: #8195ab;
 
-    --hover-bg: rgba(15, 23, 42, 0.06);
-    --hover-strong-bg: rgba(15, 23, 42, 0.08);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(15, 23, 42, 0.12);
-    --accent-hover-bg: rgba(33, 123, 254, 0.10);
-    --accent-hover-border: rgba(33, 123, 254, 0.35);
+  --control-bg: #ffffff;
+  --control-border: rgba(21, 36, 54, 0.2);
+  --control-pill-bg: #d8e6fb;
+
+  --hover-bg: rgba(21, 36, 54, 0.06);
+  --hover-strong-bg: rgba(21, 36, 54, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --accent-hover-bg: rgba(44, 120, 236, 0.1);
+  --accent-hover-border: rgba(44, 120, 236, 0.35);
+  --accent-selection: rgba(44, 120, 236, 0.2);
+  --scroll-thumb: rgba(91, 114, 143, 0.45);
 }

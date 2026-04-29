@@ -32,11 +32,11 @@ const AdminTokensPage = () => {
       const res = await apiRequestBackend(`/api/admin/stats/tokens${qs ? `?${qs}` : ''}`)
       setStats(res || { totalTokens: 0, items: [] })
     } catch (err) {
-      setError(err?.message || 'Failed to load token stats')
+      setError(err?.message || t('admin.load_tokens_fail'))
     } finally {
       setLoading(false)
     }
-  }, [filters.q, filters.sortBy, filters.sortDir])
+  }, [filters.q, filters.sortBy, filters.sortDir, t])
 
   useEffect(() => {
     load()
@@ -60,21 +60,21 @@ const AdminTokensPage = () => {
     () => [
       {
         key: 'username',
-        header: 'Username',
+        header: t('admin.table.username'),
         sortable: true,
         minWidth: 170,
         render: (x) => <span className="admin-token-user">{x.username || x.userId}</span>,
       },
       {
         key: 'email',
-        header: 'Email',
+        header: t('admin.table.email'),
         sortable: true,
         minWidth: 240,
         render: (x) => x.email,
       },
       {
         key: 'tokens',
-        header: 'Tokens',
+        header: t('admin.table.tokens'),
         sortable: true,
         minWidth: 120,
         width: 130,
@@ -82,7 +82,7 @@ const AdminTokensPage = () => {
       },
       {
         key: 'usage',
-        header: 'Usage',
+        header: t('admin.table.usage'),
         sortable: false,
         minWidth: 220,
         width: 240,
@@ -99,7 +99,7 @@ const AdminTokensPage = () => {
         },
       },
     ],
-    [summary.max],
+    [summary.max, t],
   )
 
   return (
@@ -120,21 +120,21 @@ const AdminTokensPage = () => {
           <div className="admin-stat-icon admin-stat-icon--blue">
             <i className="ti ti-coins" />
           </div>
-          <span className="admin-stat-label">Total tokens</span>
+          <span className="admin-stat-label">{t('admin.total_tokens')}</span>
           <span className="admin-stat-value">{summary.total}</span>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon admin-stat-icon--green">
             <i className="ti ti-users-group" />
           </div>
-          <span className="admin-stat-label">Tracked users</span>
+          <span className="admin-stat-label">{t('admin.tracked_users')}</span>
           <span className="admin-stat-value">{summary.userCount}</span>
         </div>
         <div className="admin-stat-card">
           <div className="admin-stat-icon admin-stat-icon--amber">
             <i className="ti ti-chart-bar" />
           </div>
-          <span className="admin-stat-label">Average / user</span>
+          <span className="admin-stat-label">{t('admin.avg_per_user')}</span>
           <span className="admin-stat-value">{summary.avg}</span>
         </div>
       </div>
@@ -192,8 +192,8 @@ const AdminTokensPage = () => {
             rows={stats?.items || []}
             rowKey={(x) => x.userId}
             loading={loading}
-            error={error ? `Error: ${error}` : ''}
-            emptyText="No data yet"
+            error={error ? `${t('common.error')}: ${error}` : ''}
+            emptyText={t('admin.no_data')}
             defaultPageSize={10}
             pageSizeOptions={[10, 20, 50]}
             manualSort

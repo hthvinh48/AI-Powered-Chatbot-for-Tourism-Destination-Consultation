@@ -1,64 +1,60 @@
 .newPrompt {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-}
-
-.endChat {
-    padding-bottom: 36px;
+  width: 100%;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--divider);
 }
 
 .newForm {
-    width: 90%;
-    position: absolute;
-    bottom: 0px;
-    background-color: var(--surface-3);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 0px 20px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--surface-2);
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px;
+}
 
+.newForm textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 190px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  outline: none;
+  background: var(--surface-3);
+  color: var(--app-fg);
+  resize: vertical;
+  padding: 10px 12px;
+}
 
-    input,
-    textarea {
-        flex: 1;
-        padding: 20px;
-        border: none;
-        outline: none;
-        background-color: transparent;
-        color: var(--app-fg);
-        resize: none;
-    }
+.newForm textarea::placeholder {
+  color: var(--text-placeholder);
+}
 
-    button,
-    label {
-        background: linear-gradient(135deg, #217bfe, #6a4cff);
-        border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 8px;
-        transition: opacity 0.2s ease;
+.newForm textarea:focus {
+  border-color: var(--accent-hover-border);
+}
 
-        &:hover {
-            opacity: 0.85;
-        }
+.newForm button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #2f78ee;
+  border-radius: 8px;
+  background: #2f78ee;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 
-        img {
-            width: 16px;
-            height: 16px;
-        }
-    }
+.newForm button:hover:not(:disabled) {
+  background: #2565c8;
+  border-color: #2565c8;
+}
 
-    button:disabled {
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
+.newForm button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

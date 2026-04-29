@@ -1,42 +1,55 @@
-import { Link } from "react-router-dom"
-import "./homePage.css"
+import { Link } from 'react-router-dom'
+import './homePage.css'
+import { useI18n } from '../../lib/useI18n'
 
 const HomePage = () => {
+  const { t } = useI18n()
+
   return (
-    <div className="homepage">
-      <div className="left">
-        <h1>
-          <span>T</span>
-          <span>r</span>
-          <span>A</span>
-          <span>v</span>
-          <span>e</span>
-          <span>l</span>
-        </h1>
-        <h2>Find the perfect place for your next adventure</h2>
-        <h3>
-          Our AI travel assistant helps you explore destinations, discover hidden gems,
-          and plan unforgettable trips effortlessly.
-        </h3>
-        <Link to="/dashboard">Get Started</Link>
-      </div>
+    <div className="homePage">
+      <section className="homeHero">
+        <div className="homeHeroBackdrop" />
+        <img className="homeHeroPattern" src="/bg.png" alt="" />
 
-      <div className="right">
-        <div className="imgContainer">
-          <div className="bgContainer">
-            <div className="bg"></div>
+        <div className="homeHeroContent">
+          <span className="homeHeroLabel">{t('home.badge')}</span>
+          <h1 className="homeHeroTitle">{t('home.title')}</h1>
+          <p className="homeHeroText">{t('home.subtitle')}</p>
+          <div className="homeHeroActions">
+            <Link className="homeBtn homeBtnPrimary" to="/dashboard">
+              {t('home.cta_start')}
+            </Link>
+            <Link className="homeBtn homeBtnGhost" to="/explore">
+              {t('home.cta_explore')}
+            </Link>
           </div>
-          <img src="/bot.png" alt="" className="bot" />
         </div>
-      </div>
 
-      <div className="terms">
-        <div className="links">
-          <Link to="/terms">Terms of Service</Link>
-          <span>|</span>
-          <Link to="/privacy">Privacy Policy</Link>
+        <img className="homeHeroBot" src="/bot.png" alt="Travel assistant bot" />
+      </section>
+
+      <section className="homeHighlights">
+        <article className="homeHighlightItem">
+          <h3>{t('home.highlight.plan.title')}</h3>
+          <p>{t('home.highlight.plan.text')}</p>
+        </article>
+        <article className="homeHighlightItem">
+          <h3>{t('home.highlight.budget.title')}</h3>
+          <p>{t('home.highlight.budget.text')}</p>
+        </article>
+        <article className="homeHighlightItem">
+          <h3>{t('home.highlight.saved.title')}</h3>
+          <p>{t('home.highlight.saved.text')}</p>
+        </article>
+      </section>
+
+      <footer className="homeFooter">
+        <div className="homeFooterLinks">
+          <Link to="/terms">{t('home.footer_terms')}</Link>
+          <span>/</span>
+          <Link to="/privacy">{t('home.footer_privacy')}</Link>
         </div>
-      </div>
+      </footer>
     </div>
   )
 }
