@@ -13,6 +13,8 @@ import DashboardLayout from './layouts/dashboardLayout/DashboardLayout.jsx'
 import SignInPage from './routes/signInPage/SignInPage.jsx'
 import SignUpPage from './routes/signUpPage/SignUpPage.jsx'
 import AdminLayout from './routes/admin/AdminLayout.jsx'
+import AdminOverviewPage from './routes/admin/AdminOverviewPage.jsx'
+import AdminTripMapPage from './routes/admin/AdminTripMapPage.jsx'
 import AdminUsersPage from './routes/admin/AdminUsersPage.jsx'
 import AdminTokensPage from './routes/admin/AdminTokensPage.jsx'
 import UnderDevelopmentPage from './routes/underDevelopment/UnderDevelopmentPage.jsx'
@@ -67,7 +69,9 @@ const router = createBrowserRouter([
         path: "/admin",
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="/admin/users" replace /> },
+          { index: true, element: <AdminOverviewPage /> },
+          { path: "overview", element: <Navigate to="/admin" replace /> },
+          { path: "map", element: <AdminTripMapPage /> },
           { path: "users", element: <AdminUsersPage /> },
           { path: "tokens", element: <AdminTokensPage /> },
         ],

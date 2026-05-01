@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Show, UserButton, useAuth } from '@clerk/react'
 import { useBackendAuthSync } from '../../lib/useBackendAuthSync'
 import { getBackendAuth } from '../../lib/backendAuth'
@@ -29,8 +29,10 @@ const AdminLayout = () => {
   const me = getBackendAuth()?.user || null
   const role = me?.role
   const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+  const redirectUrl = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)
 
   const currentPageLabel = useMemo(() => {
+    if (location.pathname.startsWith('/admin/map')) return t('admin.map.nav')
     if (location.pathname.startsWith('/admin/users')) return t('admin.users')
     if (location.pathname.startsWith('/admin/tokens')) return t('admin.tokens')
     if (location.pathname.startsWith('/dashboard')) return t('admin.back')
@@ -39,7 +41,7 @@ const AdminLayout = () => {
   }, [location.pathname, t])
 
   if (!isLoaded) return <div className="admin-loading">{t('common.loading')}</div>
-  if (!userId) return <AccessDeniedPage title={t('admin.forbidden_title')} description={t('access.denied_text')} />
+  if (!userId) return <Navigate to={`/sign-in?redirect_url=${redirectUrl}`} replace />
   if (userId && syncing) return <div className="admin-loading">{t('common.syncing')}</div>
   if (userId && error) return <div className="admin-loading">{t('common.auth_error')}: {error}</div>
   if (!me) return <div className="admin-loading">{t('common.syncing')}</div>
@@ -80,6 +82,27 @@ const AdminLayout = () => {
           {!collapsed ? (
             <div className="admin-sidebar-section-label">{t('admin.control_center')}</div>
           ) : null}
+
+          <NavLink
+            end
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
+            to="/admin"
+            onClick={() => setMobileOpen(false)}
+            title={t('admin.overview')}
+          >
+            <i className="ti ti-layout-dashboard" />
+            {!collapsed ? <span>{t('admin.overview')}</span> : null}
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
+            to="/admin/map"
+            onClick={() => setMobileOpen(false)}
+            title={t('admin.map.nav')}
+          >
+            <i className="ti ti-map-2" />
+            {!collapsed ? <span>{t('admin.map.nav')}</span> : null}
+          </NavLink>
 
           <NavLink
             className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}

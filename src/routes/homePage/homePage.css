@@ -59,7 +59,26 @@
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: 0;
-  color: #ffffff;
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(96deg, #ffffff 0%, #d7edff 28%, #78b4ff 50%, #d7edff 72%, #ffffff 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 8px 20px rgba(47, 120, 238, 0.25));
+  animation: homeTitleShimmer 9s ease-in-out infinite;
+}
+
+.homeHeroTitle::after {
+  content: attr(data-title);
+  position: absolute;
+  inset: 0;
+  color: rgba(136, 188, 255, 0.3);
+  filter: blur(14px);
+  transform: translateY(5px);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .homeHeroText {
@@ -87,6 +106,10 @@
   font-weight: 700;
   border: 1px solid transparent;
   transition: all 0.15s ease;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  appearance: none;
 }
 
 .homeBtnPrimary {
@@ -110,15 +133,38 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-.homeHeroBot {
+.homeHeroBotWrap {
   position: absolute;
   right: clamp(8px, 3vw, 44px);
   bottom: 0;
   height: min(76%, 520px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   width: auto;
   z-index: 2;
-  object-fit: contain;
   pointer-events: none;
+  animation: homeBotFloat 6.4s ease-in-out infinite;
+}
+
+.homeHeroBotGlow {
+  position: absolute;
+  width: min(72%, 300px);
+  aspect-ratio: 1 / 1;
+  bottom: 10%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(62, 173, 255, 0.34) 0%, rgba(62, 173, 255, 0.04) 58%, transparent 74%);
+  filter: blur(2px);
+  animation: homeBotGlowPulse 4.8s ease-in-out infinite;
+}
+
+.homeHeroBot {
+  height: 100%;
+  width: auto;
+  z-index: 1;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 26px rgba(15, 24, 36, 0.34));
+  animation: homeBotTilt 10s ease-in-out infinite;
 }
 
 :root[data-theme='light'] .homeHero {
@@ -136,7 +182,20 @@
 }
 
 :root[data-theme='light'] .homeHeroTitle {
-  color: #113056;
+  background: linear-gradient(96deg, #174170 0%, #2d5f99 30%, #1f7bc2 52%, #2d5f99 72%, #174170 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 8px 18px rgba(47, 120, 238, 0.18));
+}
+
+:root[data-theme='light'] .homeHeroTitle::after {
+  color: rgba(38, 102, 173, 0.24);
+}
+
+:root[data-theme='light'] .homeHeroBotGlow {
+  background: radial-gradient(circle, rgba(41, 145, 230, 0.27) 0%, rgba(41, 145, 230, 0.04) 60%, transparent 74%);
 }
 
 :root[data-theme='light'] .homeHeroText {
@@ -162,6 +221,11 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+  scroll-margin-top: 88px;
+}
+
+.homeHighlights--flash .homeHighlightItem {
+  animation: homeFeatureFlash 0.9s ease;
 }
 
 .homeHighlightItem {
@@ -204,16 +268,90 @@
   color: var(--app-fg);
 }
 
+@keyframes homeTitleShimmer {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes homeBotFloat {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes homeBotTilt {
+
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  35% {
+    transform: rotate(-0.8deg) scale(1.01);
+  }
+
+  70% {
+    transform: rotate(0.7deg) scale(0.995);
+  }
+}
+
+@keyframes homeBotGlowPulse {
+
+  0%,
+  100% {
+    opacity: 0.52;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes homeFeatureFlash {
+  0% {
+    border-color: rgba(47, 120, 238, 0.65);
+    box-shadow: 0 0 0 0 rgba(47, 120, 238, 0.35);
+  }
+
+  45% {
+    border-color: rgba(47, 120, 238, 0.5);
+    box-shadow: 0 0 0 8px rgba(47, 120, 238, 0.1);
+  }
+
+  100% {
+    border-color: var(--glass-border);
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .homeHero {
     min-height: 560px;
     padding: 26px 20px;
   }
 
-  .homeHeroBot {
+  .homeHeroBotWrap {
     right: 8px;
     height: 50%;
-    opacity: 0.8;
+  }
+
+  .homeHeroBot {
+    opacity: 0.9;
   }
 
   .homeHighlights {
@@ -232,5 +370,15 @@
 
   .homeHeroText {
     max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .homeHeroTitle,
+  .homeHeroBotWrap,
+  .homeHeroBot,
+  .homeHeroBotGlow {
+    animation: none !important;
   }
 }

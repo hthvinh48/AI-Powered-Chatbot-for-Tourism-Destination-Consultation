@@ -1,9 +1,21 @@
 import { SignIn } from '@clerk/react'
+import { useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import './signInPage.css'
 import { useI18n } from '../../lib/useI18n'
 
 const SignInPage = () => {
   const { t } = useI18n()
+  const [searchParams] = useSearchParams()
+  const redirectUrl = useMemo(() => {
+    const next = searchParams.get('redirect_url')
+    if (!next || !next.startsWith('/')) return '/dashboard'
+    return next
+  }, [searchParams])
+  const signUpUrl = useMemo(
+    () => `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`,
+    [redirectUrl],
+  )
 
   return (
     <div className="authPage">
@@ -16,8 +28,9 @@ const SignInPage = () => {
           <SignIn
             routing="path"
             path="/sign-in"
-            signUpUrl="/sign-up"
-            forceRedirectUrl="/dashboard"
+            signUpUrl={signUpUrl}
+            forceRedirectUrl={redirectUrl}
+            fallbackRedirectUrl={redirectUrl}
           />
         </div>
       </div>

@@ -16,6 +16,7 @@
     "@tanstack/react-query": "^5.90.21",
     "apexcharts": "^5.10.6",
     "bootstrap": "^5.3.8",
+    "leaflet": "^1.9.4",
     "react": "19.0.0-rc-8b08e99e-20240713",
     "react-dom": "19.0.0-rc-8b08e99e-20240713",
     "react-icons": "^5.6.0",

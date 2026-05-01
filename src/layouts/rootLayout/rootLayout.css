@@ -25,18 +25,27 @@
   align-items: center;
   gap: 10px;
   color: var(--app-fg);
+  position: relative;
 }
 
 .rootLogo img {
   width: 36px;
   height: 36px;
   object-fit: contain;
+  filter: drop-shadow(0 6px 14px rgba(47, 120, 238, 0.25));
+  animation: rootLogoFloat 5.6s ease-in-out infinite;
 }
 
 .rootLogo span {
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0;
+  background: linear-gradient(96deg, #f4f8ff 0%, #b8d8ff 35%, #ffffff 70%, #f4f8ff 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rootLogoShimmer 8s ease-in-out infinite;
 }
 
 .rootHeaderActions {
@@ -156,9 +165,45 @@
   border-color: #2567d8;
 }
 
+:root[data-theme='light'] .rootLogo img {
+  filter: drop-shadow(0 6px 14px rgba(37, 103, 216, 0.2));
+}
+
+:root[data-theme='light'] .rootLogo span {
+  background: linear-gradient(96deg, #1a406f 0%, #2c5f97 35%, #1f7cc5 70%, #1a406f 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 :root[data-theme='light'] .rootPrimaryLink:hover {
   background: #1f58ba;
   border-color: #1f58ba;
+}
+
+@keyframes rootLogoFloat {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes rootLogoShimmer {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -183,5 +228,13 @@
   .rootPrimaryLink {
     padding: 0 10px;
     font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .rootLogo img,
+  .rootLogo span {
+    animation: none !important;
   }
 }
