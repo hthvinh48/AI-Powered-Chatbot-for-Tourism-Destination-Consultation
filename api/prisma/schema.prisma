@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER") // ADMIN | USER
+
+  clerkUserId String?
+
+  bannedAt   DateTime?
+  banReason  String?
+
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  chats         Chat[]
+  tripPlans     TripPlan[]
+  aiUsages      AIUsage[]
+
+  @@index([email])
+  @@index([clerkUserId])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Chat {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages  Message[]
+  tripPlans TripPlan[]
+
+  @@index([userId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  role      String   // USER | ASSISTANT
+  content   String   @db.NVarChar(Max)
+  createdAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId])
+}
+
+model TripPlan {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  chatId      Int?
+  title       String
+  description String?   @db.NVarChar(Max)
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  chat Chat? @relation(fields: [chatId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  destinations Destination[]
+
+  @@index([userId])
+  @@index([chatId])
+}
+
+model Destination {
+  id         Int      @id @default(autoincrement())
+  tripPlanId Int
+  name       String
+  location   String?
+  dayNumber  Int?
+  note       String? @db.NVarChar(Max)
+  createdAt  DateTime @default(now())
+
+  tripPlan TripPlan @relation(fields: [tripPlanId], references: [id], onDelete: Cascade)
+
+  @@index([tripPlanId])
+}
+
+model AIUsage {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tokens    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

@@ -7,9 +7,20 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+/api/generated/prisma
 /api/node_modules
 /api/.env
 /api/.env.example
+/api/dist/
+/api/build/
+/api/*.log
+/api/.DS_Store
+/api/Thumbs.db
+/api/prisma/migrations/
+/api/prisma/generated/
+/api/.DS_Store
+/api/Thumbs.db
+
 template
 node_modules
 dist
