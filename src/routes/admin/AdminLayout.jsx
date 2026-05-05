@@ -7,7 +7,7 @@ import { toggleTheme } from '../../lib/theme'
 import { useI18n } from '../../lib/useI18n'
 import AccessDeniedPage from '../accessDenied/AccessDeniedPage.jsx'
 
-import '../../template/assets/scss/style.scss'
+import '../../assets/scss/style.scss'
 import './adminTheme.css'
 
 const AdminLayout = () => {
