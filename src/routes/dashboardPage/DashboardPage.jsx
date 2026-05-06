@@ -5,6 +5,7 @@ import { useI18n } from '../../lib/useI18n'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../../components/notifications/useNotify'
 import TripPlanMessage from '../../components/tripPlan/TripPlanMessage'
+import TypingIndicator from '../../components/typing/TypingIndicator'
 
 const DashboardPage = () => {
   const { t } = useI18n()
@@ -12,6 +13,7 @@ const DashboardPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const notify = useNotify()
   const [text, setText] = useState('')
+  const [pending, setPending] = useState(false)
   const inputRef = useRef(null)
   const [savedOpen, setSavedOpen] = useState(false)
   const [savedPlans, setSavedPlans] = useState([])
@@ -82,14 +84,18 @@ const DashboardPage = () => {
 
   const submit = async (e) => {
     e.preventDefault()
+    if (pending) return
     const msg = text.trim()
     if (!msg) return
     try {
+      setPending(true)
       const res = await apiRequestBackend('/api/chat/ask', { method: 'POST', body: { message: msg } })
       if (res?.chatId) navigate(`/dashboard/chats/${res.chatId}`)
       setText('')
     } catch (err) {
       notify.error(err?.message || t('prompt.request_failed'))
+    } finally {
+      setPending(false)
     }
   }
 
@@ -155,11 +161,17 @@ const DashboardPage = () => {
             onChange={(e) => setText(e.target.value)}
             ref={inputRef}
             rows={2}
+            disabled={pending}
           />
-          <button type="submit" aria-label="Send message">
+          <button type="submit" aria-label={pending ? t('prompt.sending') : t('prompt.send')} disabled={pending}>
             <i className="ti ti-arrow-up" />
           </button>
         </form>
+        {pending ? (
+          <div className="dashboardTyping">
+            <TypingIndicator labelKey="chat.thinking" />
+          </div>
+        ) : null}
       </section>
 
       {savedOpen ? (

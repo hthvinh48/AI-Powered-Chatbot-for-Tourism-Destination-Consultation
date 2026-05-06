@@ -6,6 +6,7 @@ import { apiRequestBackend } from '../../lib/apiClient'
 import TripPlanMessage from '../../components/tripPlan/TripPlanMessage'
 import { hasTripPlanJson } from '../../lib/tolerantJson'
 import { useI18n } from '../../lib/useI18n'
+import TypingIndicator from '../../components/typing/TypingIndicator'
 
 const ChatPage = () => {
   const { t } = useI18n()
@@ -72,7 +73,11 @@ const ChatPage = () => {
           })
           : null}
 
-        {thinking ? <div className="chatSystemMsg">{t('chat.thinking')}</div> : null}
+        {thinking ? (
+          <div className="chatSystemMsg">
+            <TypingIndicator labelKey="chat.thinking" />
+          </div>
+        ) : null}
         <div ref={endRef} />
       </div>
 
