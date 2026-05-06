@@ -75,18 +75,40 @@
   color: var(--text-muted);
 }
 
-.chatListLoadMore {
-  margin: 6px 10px 0;
-  height: 34px;
+.chatListPager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 2px 2px;
+}
+
+.chatListPagerBtn {
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   border: 1px solid var(--control-border);
   background: var(--control-bg);
   color: var(--app-fg);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.chatListLoadMore:hover {
+.chatListPagerBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chatListPagerBtn:hover:not(:disabled) {
   background: var(--hover-bg);
+}
+
+.chatListPagerText {
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
 }
 
 .chatListRow {
@@ -183,6 +205,20 @@
   gap: 8px;
 }
 
+.chatModalPager {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.chatModalPagerText {
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
 .chatModalBtn,
 .chatModalIconBtn {
   height: 34px;
@@ -249,6 +285,18 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+.savedPlanMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.savedPlanDate {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .savedPlanLink {

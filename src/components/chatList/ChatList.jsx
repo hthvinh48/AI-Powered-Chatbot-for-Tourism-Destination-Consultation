@@ -26,33 +26,39 @@ const ChatList = () => {
   const [savedPlans, setSavedPlans] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
   const [savedError, setSavedError] = useState('')
+  const [savedTotal, setSavedTotal] = useState(0)
+  const [savedPage, setSavedPage] = useState(1)
+  const SAVED_LIMIT = 10
 
   const { id } = useParams()
   const activeChatId = Number(id)
 
-  const LIMIT = 12
-  const load = async (nextPage = 1, mode = 'replace') => {
+  const LIMIT = 10
+  const load = async (nextPage = 1) => {
     setLoadingChats(true)
     try {
       const res = await apiRequestBackend(`/api/chat?page=${nextPage}&limit=${LIMIT}`)
       const newItems = Array.isArray(res?.items) ? res.items : []
       setTotalChats(Number(res?.total) || 0)
       setPage(Number(res?.page) || nextPage)
-      setItems((prev) => (mode === 'append' ? [...prev, ...newItems] : newItems))
+      setItems(newItems)
     } finally {
       setLoadingChats(false)
     }
   }
 
-  const loadSaved = async () => {
+  const loadSaved = async (nextPage = 1) => {
     setSavedLoading(true)
     setSavedError('')
     try {
-      const res = await apiRequestBackend('/api/trip-plans?include=true&limit=50')
+      const res = await apiRequestBackend(`/api/trip-plans?include=true&page=${nextPage}&limit=${SAVED_LIMIT}`)
       setSavedPlans(Array.isArray(res?.items) ? res.items : [])
+      setSavedTotal(Number(res?.total) || 0)
+      setSavedPage(Number(res?.page) || nextPage)
     } catch (err) {
       setSavedError(err?.message || t('trip.load_saved_fail'))
       setSavedPlans([])
+      setSavedTotal(0)
     } finally {
       setSavedLoading(false)
     }
@@ -79,14 +85,14 @@ const ChatList = () => {
 
   useEffect(() => {
     let active = true
-    load(1, 'replace').catch(() => {
+    load(page).catch(() => {
       if (!active) return
       setItems([])
     })
     return () => {
       active = false
     }
-  }, [])
+  }, [page])
 
   const createChat = async () => {
     try {
@@ -101,7 +107,7 @@ const ChatList = () => {
     if (!ok) return
     try {
       await apiRequestBackend(`/api/chat/${chatId}`, { method: 'DELETE' })
-      await load(1, 'replace')
+      await load(1)
       if (location.pathname === `/dashboard/chats/${chatId}`) {
         navigate('/dashboard')
       }
@@ -133,7 +139,7 @@ const ChatList = () => {
             className="chatListActionBtn"
             onClick={async () => {
               setSavedOpen(true)
-              await loadSaved()
+              await loadSaved(1)
             }}
           >
             <i className="ti ti-bookmarks" />
@@ -145,6 +151,31 @@ const ChatList = () => {
 
         <div className="chatListSection">
           <span className="chatListTitle">{t('menu.recents')}</span>
+          <div className="chatListPager">
+            <button
+              type="button"
+              className="chatListPagerBtn"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={loadingChats || page <= 1}
+              aria-label={t('chat.prev_page')}
+              title={t('chat.prev_page')}
+            >
+              <i className="ti ti-chevron-left" />
+            </button>
+            <div className="chatListPagerText">
+              {t('chat.page')} {page}/{Math.max(1, Math.ceil(totalChats / LIMIT))}
+            </div>
+            <button
+              type="button"
+              className="chatListPagerBtn"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={loadingChats || page >= Math.max(1, Math.ceil(totalChats / LIMIT))}
+              aria-label={t('chat.next_page')}
+              title={t('chat.next_page')}
+            >
+              <i className="ti ti-chevron-right" />
+            </button>
+          </div>
           <div className="chatListItems">
             {(items || []).map((c) => (
               <div className={`chatListRow ${c.id === activeChatId ? 'active' : ''}`} key={c.id}>
@@ -167,15 +198,6 @@ const ChatList = () => {
               </div>
             ))}
             {loadingChats ? <div className="chatListHint">{t('chat.loading')}</div> : null}
-            {!loadingChats && items.length < totalChats ? (
-              <button
-                type="button"
-                className="chatListLoadMore"
-                onClick={() => load(page + 1, 'append')}
-              >
-                {t('chat.load_more')}
-              </button>
-            ) : null}
           </div>
         </div>
 
@@ -242,7 +264,7 @@ const ChatList = () => {
                 <button
                   type="button"
                   className="chatModalBtn"
-                  onClick={loadSaved}
+                  onClick={() => loadSaved(savedPage)}
                   disabled={savedLoading}
                 >
                   {savedLoading ? t('trip.loading') : t('trip.refresh')}
@@ -263,6 +285,36 @@ const ChatList = () => {
               <div className="chatModalHint">{t('trip.no_saved')}</div>
             ) : null}
 
+            {savedTotal > 0 ? (
+              <div className="chatModalPager">
+                <button
+                  type="button"
+                  className="chatModalIconBtn"
+                  onClick={() => loadSaved(Math.max(1, savedPage - 1))}
+                  disabled={savedLoading || savedPage <= 1}
+                  aria-label={t('chat.prev_page')}
+                  title={t('chat.prev_page')}
+                >
+                  <i className="ti ti-chevron-left" />
+                </button>
+                <div className="chatModalPagerText">
+                  {t('chat.page')} {savedPage}/{Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))}
+                </div>
+                <button
+                  type="button"
+                  className="chatModalIconBtn"
+                  onClick={() => loadSaved(savedPage + 1)}
+                  disabled={
+                    savedLoading || savedPage >= Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))
+                  }
+                  aria-label={t('chat.next_page')}
+                  title={t('chat.next_page')}
+                >
+                  <i className="ti ti-chevron-right" />
+                </button>
+              </div>
+            ) : null}
+
             <div className="chatModalPreview">
               {(savedPlans || []).map((p) => {
                 const wrapper = p?.data && typeof p.data === 'object' ? p.data : null
@@ -280,14 +332,19 @@ const ChatList = () => {
                       >
                         {p?.title || `${t('trip.trip_fallback')} #${p.id}`}
                       </button>
-                      <button
-                        type="button"
-                        className="savedPlanDelete"
-                        onClick={() => deleteSavedPlan(p)}
-                      >
-                        <i className="ti ti-trash" />
-                        {t('chat.delete_saved')}
-                      </button>
+                      <div className="savedPlanMeta">
+                        {p?.createdAt ? (
+                          <span className="savedPlanDate">{formatSavedAt(p.createdAt)}</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="savedPlanDelete"
+                          onClick={() => deleteSavedPlan(p)}
+                        >
+                          <i className="ti ti-trash" />
+                          {t('chat.delete_saved')}
+                        </button>
+                      </div>
                     </div>
                     {content ? (
                       <TripPlanMessage chatId={Number.NaN} content={content} allowSave={false} />
@@ -306,3 +363,9 @@ const ChatList = () => {
 }
 
 export default ChatList
+  const formatSavedAt = (value) => {
+    if (!value) return ''
+    const dt = value instanceof Date ? value : new Date(value)
+    if (!Number.isFinite(dt.getTime())) return ''
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(dt)
+  }

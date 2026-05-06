@@ -76,7 +76,9 @@ const DICT = {
     'chat.delete_saved_fail': 'Failed to delete saved trip',
     'chat.delete_saved': 'Delete',
     'chat.load_fail': 'Failed to load messages',
-    'chat.load_more': 'Load more',
+    'chat.prev_page': 'Previous page',
+    'chat.next_page': 'Next page',
+    'chat.page': 'Page',
 
     'prompt.ask_anything': 'Ask anything...',
     'prompt.plan_detected': 'Plan input detected: trip plan will be generated from your fields.',
@@ -306,7 +308,9 @@ const DICT = {
     'chat.delete_saved_fail': 'Xóa chuyến đi đã lưu thất bại',
     'chat.delete_saved': 'Xóa',
     'chat.load_fail': 'Tải tin nhắn thất bại',
-    'chat.load_more': 'Tải thêm',
+    'chat.prev_page': 'Trang trước',
+    'chat.next_page': 'Trang sau',
+    'chat.page': 'Trang',
 
     'prompt.ask_anything': 'Hỏi bất kỳ điều gì...',
     'prompt.plan_detected': 'Đã nhận diện mẫu plan: hệ thống sẽ tạo lịch trình theo các trường bạn nhập.',

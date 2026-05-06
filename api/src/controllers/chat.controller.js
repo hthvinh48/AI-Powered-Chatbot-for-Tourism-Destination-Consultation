@@ -125,7 +125,13 @@ exports.deleteChat = async (req, res) => {
   if (!chat) return res.status(404).json({ message: "Chat not found" });
   if (chat === "FORBIDDEN") return res.status(403).json({ message: "Forbidden" });
 
-  await prisma.chat.delete({ where: { id: chatId } });
+  // Important: allow deleting a chat without deleting already-saved trip plans.
+  // We keep trip plans by detaching them from the chat first.
+  await prisma.$transaction([
+    prisma.tripPlan.updateMany({ where: { chatId }, data: { chatId: null } }),
+    prisma.message.deleteMany({ where: { chatId } }),
+    prisma.chat.delete({ where: { id: chatId } }),
+  ]);
   res.json({ message: "Chat deleted" });
 };
 

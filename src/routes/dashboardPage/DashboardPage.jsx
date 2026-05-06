@@ -17,16 +17,29 @@ const DashboardPage = () => {
   const [savedPlans, setSavedPlans] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
   const [savedError, setSavedError] = useState('')
+  const [savedTotal, setSavedTotal] = useState(0)
+  const [savedPage, setSavedPage] = useState(1)
+  const SAVED_LIMIT = 10
 
-  const loadSaved = useCallback(async () => {
+  const formatSavedAt = (value) => {
+    if (!value) return ''
+    const dt = value instanceof Date ? value : new Date(value)
+    if (!Number.isFinite(dt.getTime())) return ''
+    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(dt)
+  }
+
+  const loadSaved = useCallback(async (nextPage = 1) => {
     setSavedLoading(true)
     setSavedError('')
     try {
-      const res = await apiRequestBackend('/api/trip-plans?include=true&limit=50')
+      const res = await apiRequestBackend(`/api/trip-plans?include=true&page=${nextPage}&limit=${SAVED_LIMIT}`)
       setSavedPlans(Array.isArray(res?.items) ? res.items : [])
+      setSavedTotal(Number(res?.total) || 0)
+      setSavedPage(Number(res?.page) || nextPage)
     } catch (err) {
       setSavedError(err?.message || t('trip.load_saved_fail'))
       setSavedPlans([])
+      setSavedTotal(0)
     } finally {
       setSavedLoading(false)
     }
@@ -64,7 +77,7 @@ const DashboardPage = () => {
   }, [searchParams, setSearchParams])
 
   useEffect(() => {
-    loadSaved()
+    loadSaved(1)
   }, [loadSaved])
 
   const submit = async (e) => {
@@ -169,6 +182,34 @@ const DashboardPage = () => {
               <div className="savedHint">{t('trip.no_saved')}</div>
             ) : null}
 
+            {savedTotal > 0 ? (
+              <div className="savedPager">
+                <button
+                  type="button"
+                  className="savedBtn"
+                  onClick={() => loadSaved(Math.max(1, savedPage - 1))}
+                  disabled={savedLoading || savedPage <= 1}
+                  aria-label={t('chat.prev_page')}
+                  title={t('chat.prev_page')}
+                >
+                  ‹
+                </button>
+                <div className="savedPagerText">
+                  {t('chat.page')} {savedPage}/{Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))}
+                </div>
+                <button
+                  type="button"
+                  className="savedBtn"
+                  onClick={() => loadSaved(savedPage + 1)}
+                  disabled={savedLoading || savedPage >= Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))}
+                  aria-label={t('chat.next_page')}
+                  title={t('chat.next_page')}
+                >
+                  ›
+                </button>
+              </div>
+            ) : null}
+
             <div className="savedList">
               {savedPlans.map((p) => {
                 const wrapper = p?.data && typeof p.data === 'object' ? p.data : null
@@ -186,14 +227,17 @@ const DashboardPage = () => {
                       >
                         {p?.title || `${t('trip.trip_fallback')} #${p.id}`}
                       </button>
-                      <button
-                        type="button"
-                        className="savedItemDelete"
-                        onClick={() => deleteSavedPlan(p)}
-                      >
-                        <i className="ti ti-trash" />
-                        {t('chat.delete_saved')}
-                      </button>
+                      <div className="savedItemMeta">
+                        {p?.createdAt ? <span className="savedItemDate">{formatSavedAt(p.createdAt)}</span> : null}
+                        <button
+                          type="button"
+                          className="savedItemDelete"
+                          onClick={() => deleteSavedPlan(p)}
+                        >
+                          <i className="ti ti-trash" />
+                          {t('chat.delete_saved')}
+                        </button>
+                      </div>
                     </div>
                     {content ? (
                       <TripPlanMessage chatId={Number.NaN} content={content} allowSave={false} />

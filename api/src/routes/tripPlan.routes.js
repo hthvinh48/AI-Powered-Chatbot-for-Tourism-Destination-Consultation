@@ -9,6 +9,6 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get("/", asyncHandle(tripPlanController.listMyTripPlans));
+router.delete("/:tripPlanId", asyncHandle(tripPlanController.deleteMyTripPlan));
 
 module.exports = router;
-
