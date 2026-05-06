@@ -1062,8 +1062,9 @@
 }
 
 .admin-map-stop-order {
-  width: 22px;
+  min-width: 22px;
   height: 22px;
+  padding: 0 6px;
   border-radius: 999px;
   flex-shrink: 0;
   border: 1px solid var(--admin-accent-border);

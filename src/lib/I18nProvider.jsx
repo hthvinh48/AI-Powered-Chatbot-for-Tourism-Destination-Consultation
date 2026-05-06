@@ -27,6 +27,12 @@ export default function I18nProvider({ children }) {
   const t = useCallback((key) => translate(lang, key), [lang]);
 
   useEffect(() => {
+    const finalLang = lang === "vi" ? "vi" : "en";
+    document.documentElement.lang = finalLang;
+    document.documentElement.dataset.lang = finalLang;
+  }, [lang]);
+
+  useEffect(() => {
     const onThemeChange = () => {
       const theme = document.documentElement.dataset.theme;
       if (theme) applyTheme(theme);
@@ -39,4 +45,3 @@ export default function I18nProvider({ children }) {
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
-

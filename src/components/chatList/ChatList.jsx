@@ -1,12 +1,15 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import './chatList.css'
-import { getBackendAuth } from '../../lib/backendAuth'
+import { BACKEND_AUTH_CHANGED_EVENT, getBackendAuth } from '../../lib/backendAuth'
 import { useI18n } from '../../lib/useI18n'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
 import TripPlanMessage from '../tripPlan/TripPlanMessage'
 import { hasTripPlanJson } from '../../lib/tolerantJson'
+import { emitTripPlansChanged } from '../../lib/tripPlanState'
+import { CHATS_CHANGED_EVENT, emitChatsChanged } from '../../lib/chatState'
+import useActionDialog from '../dialogs/useActionDialog'
 
 const ChatList = () => {
   const { t } = useI18n()
@@ -15,57 +18,48 @@ const ChatList = () => {
   const location = useLocation()
   const role = getBackendAuth()?.user?.role
   const canSeeAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+  const { askConfirm, dialogNode } = useActionDialog()
 
   const [items, setItems] = useState([])
-  const [totalChats, setTotalChats] = useState(0)
-  const [page, setPage] = useState(1)
-  const [loadingChats, setLoadingChats] = useState(false)
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [jsonText, setJsonText] = useState('')
   const [savedOpen, setSavedOpen] = useState(false)
   const [savedPlans, setSavedPlans] = useState([])
   const [savedLoading, setSavedLoading] = useState(false)
   const [savedError, setSavedError] = useState('')
-  const [savedTotal, setSavedTotal] = useState(0)
-  const [savedPage, setSavedPage] = useState(1)
-  const SAVED_LIMIT = 10
 
   const { id } = useParams()
   const activeChatId = Number(id)
+  const isExploreRoute = location.pathname === '/explore'
+  const isContactRoute = location.pathname === '/contact'
 
-  const LIMIT = 10
-  const load = async (nextPage = 1) => {
-    setLoadingChats(true)
-    try {
-      const res = await apiRequestBackend(`/api/chat?page=${nextPage}&limit=${LIMIT}`)
-      const newItems = Array.isArray(res?.items) ? res.items : []
-      setTotalChats(Number(res?.total) || 0)
-      setPage(Number(res?.page) || nextPage)
-      setItems(newItems)
-    } finally {
-      setLoadingChats(false)
-    }
-  }
+  const load = useCallback(async () => {
+    const res = await apiRequestBackend('/api/chat')
+    setItems(res?.items || [])
+  }, [])
 
-  const loadSaved = async (nextPage = 1) => {
+  const loadSaved = async () => {
     setSavedLoading(true)
     setSavedError('')
     try {
-      const res = await apiRequestBackend(`/api/trip-plans?include=true&page=${nextPage}&limit=${SAVED_LIMIT}`)
+      const res = await apiRequestBackend('/api/trip-plans?include=true&limit=50')
       setSavedPlans(Array.isArray(res?.items) ? res.items : [])
-      setSavedTotal(Number(res?.total) || 0)
-      setSavedPage(Number(res?.page) || nextPage)
     } catch (err) {
       setSavedError(err?.message || t('trip.load_saved_fail'))
       setSavedPlans([])
-      setSavedTotal(0)
     } finally {
       setSavedLoading(false)
     }
   }
 
   const deleteSavedPlan = async (plan) => {
-    const ok = window.confirm(t('chat.delete_saved_confirm'))
+    const ok = await askConfirm({
+      title: t('common.confirm'),
+      message: t('chat.delete_saved_confirm'),
+      confirmText: t('chat.delete_saved'),
+      tone: 'danger',
+      confirmVariant: 'danger',
+    })
     if (!ok) return
 
     try {
@@ -80,19 +74,36 @@ const ChatList = () => {
     }
 
     setSavedPlans((prev) => prev.filter((x) => x.id !== plan.id))
+    emitTripPlansChanged({ type: 'deleted', chatId: Number(plan?.chatId), tripPlanId: plan.id })
     notify.success(t('chat.delete_saved_success'))
   }
 
   useEffect(() => {
     let active = true
-    load(page).catch(() => {
+    load().catch(() => {
       if (!active) return
       setItems([])
     })
     return () => {
       active = false
     }
-  }, [page])
+  }, [load, location.pathname, location.search])
+
+  useEffect(() => {
+    const onChatsChanged = () => {
+      load().catch(() => setItems([]))
+    }
+    window.addEventListener(CHATS_CHANGED_EVENT, onChatsChanged)
+    return () => window.removeEventListener(CHATS_CHANGED_EVENT, onChatsChanged)
+  }, [load])
+
+  useEffect(() => {
+    const onBackendAuthChanged = () => {
+      load().catch(() => setItems([]))
+    }
+    window.addEventListener(BACKEND_AUTH_CHANGED_EVENT, onBackendAuthChanged)
+    return () => window.removeEventListener(BACKEND_AUTH_CHANGED_EVENT, onBackendAuthChanged)
+  }, [load])
 
   const createChat = async () => {
     try {
@@ -103,11 +114,18 @@ const ChatList = () => {
   }
 
   const deleteChat = async (chatId) => {
-    const ok = window.confirm(t('chat.delete_chat_confirm'))
+    const ok = await askConfirm({
+      title: t('common.confirm'),
+      message: t('chat.delete_chat_confirm'),
+      confirmText: t('chat.delete_saved'),
+      tone: 'danger',
+      confirmVariant: 'danger',
+    })
     if (!ok) return
     try {
       await apiRequestBackend(`/api/chat/${chatId}`, { method: 'DELETE' })
-      await load(1)
+      await load()
+      emitChatsChanged({ type: 'deleted', chatId })
       if (location.pathname === `/dashboard/chats/${chatId}`) {
         navigate('/dashboard')
       }
@@ -139,7 +157,7 @@ const ChatList = () => {
             className="chatListActionBtn"
             onClick={async () => {
               setSavedOpen(true)
-              await loadSaved(1)
+              await loadSaved()
             }}
           >
             <i className="ti ti-bookmarks" />
@@ -151,31 +169,6 @@ const ChatList = () => {
 
         <div className="chatListSection">
           <span className="chatListTitle">{t('menu.recents')}</span>
-          <div className="chatListPager">
-            <button
-              type="button"
-              className="chatListPagerBtn"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={loadingChats || page <= 1}
-              aria-label={t('chat.prev_page')}
-              title={t('chat.prev_page')}
-            >
-              <i className="ti ti-chevron-left" />
-            </button>
-            <div className="chatListPagerText">
-              {t('chat.page')} {page}/{Math.max(1, Math.ceil(totalChats / LIMIT))}
-            </div>
-            <button
-              type="button"
-              className="chatListPagerBtn"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={loadingChats || page >= Math.max(1, Math.ceil(totalChats / LIMIT))}
-              aria-label={t('chat.next_page')}
-              title={t('chat.next_page')}
-            >
-              <i className="ti ti-chevron-right" />
-            </button>
-          </div>
           <div className="chatListItems">
             {(items || []).map((c) => (
               <div className={`chatListRow ${c.id === activeChatId ? 'active' : ''}`} key={c.id}>
@@ -197,7 +190,6 @@ const ChatList = () => {
                 </button>
               </div>
             ))}
-            {loadingChats ? <div className="chatListHint">{t('chat.loading')}</div> : null}
           </div>
         </div>
 
@@ -210,11 +202,11 @@ const ChatList = () => {
               {t('menu.admin')}
             </Link>
           ) : null}
-          <Link className="chatListNavLink" to="/explore">
+          <Link className={`chatListNavLink ${isExploreRoute ? 'active' : ''}`} to="/explore">
             <i className="ti ti-compass" />
             {t('menu.explore')}
           </Link>
-          <Link className="chatListNavLink" to="/contact">
+          <Link className={`chatListNavLink ${isContactRoute ? 'active' : ''}`} to="/contact">
             <i className="ti ti-address-book" />
             {t('menu.contact')}
           </Link>
@@ -264,7 +256,7 @@ const ChatList = () => {
                 <button
                   type="button"
                   className="chatModalBtn"
-                  onClick={() => loadSaved(savedPage)}
+                  onClick={loadSaved}
                   disabled={savedLoading}
                 >
                   {savedLoading ? t('trip.loading') : t('trip.refresh')}
@@ -285,36 +277,6 @@ const ChatList = () => {
               <div className="chatModalHint">{t('trip.no_saved')}</div>
             ) : null}
 
-            {savedTotal > 0 ? (
-              <div className="chatModalPager">
-                <button
-                  type="button"
-                  className="chatModalIconBtn"
-                  onClick={() => loadSaved(Math.max(1, savedPage - 1))}
-                  disabled={savedLoading || savedPage <= 1}
-                  aria-label={t('chat.prev_page')}
-                  title={t('chat.prev_page')}
-                >
-                  <i className="ti ti-chevron-left" />
-                </button>
-                <div className="chatModalPagerText">
-                  {t('chat.page')} {savedPage}/{Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))}
-                </div>
-                <button
-                  type="button"
-                  className="chatModalIconBtn"
-                  onClick={() => loadSaved(savedPage + 1)}
-                  disabled={
-                    savedLoading || savedPage >= Math.max(1, Math.ceil(savedTotal / SAVED_LIMIT))
-                  }
-                  aria-label={t('chat.next_page')}
-                  title={t('chat.next_page')}
-                >
-                  <i className="ti ti-chevron-right" />
-                </button>
-              </div>
-            ) : null}
-
             <div className="chatModalPreview">
               {(savedPlans || []).map((p) => {
                 const wrapper = p?.data && typeof p.data === 'object' ? p.data : null
@@ -332,19 +294,14 @@ const ChatList = () => {
                       >
                         {p?.title || `${t('trip.trip_fallback')} #${p.id}`}
                       </button>
-                      <div className="savedPlanMeta">
-                        {p?.createdAt ? (
-                          <span className="savedPlanDate">{formatSavedAt(p.createdAt)}</span>
-                        ) : null}
-                        <button
-                          type="button"
-                          className="savedPlanDelete"
-                          onClick={() => deleteSavedPlan(p)}
-                        >
-                          <i className="ti ti-trash" />
-                          {t('chat.delete_saved')}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        className="savedPlanDelete"
+                        onClick={() => deleteSavedPlan(p)}
+                      >
+                        <i className="ti ti-trash" />
+                        {t('chat.delete_saved')}
+                      </button>
                     </div>
                     {content ? (
                       <TripPlanMessage chatId={Number.NaN} content={content} allowSave={false} />
@@ -358,14 +315,10 @@ const ChatList = () => {
           </div>
         </div>
       ) : null}
+
+      {dialogNode}
     </div>
   )
 }
 
 export default ChatList
-  const formatSavedAt = (value) => {
-    if (!value) return ''
-    const dt = value instanceof Date ? value : new Date(value)
-    if (!Number.isFinite(dt.getTime())) return ''
-    return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(dt)
-  }

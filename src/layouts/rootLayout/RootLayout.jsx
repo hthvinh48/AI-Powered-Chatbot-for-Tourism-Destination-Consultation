@@ -17,7 +17,10 @@ const RootLayout = () => {
   }
 
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const isDashboardRoute = location.pathname.startsWith('/dashboard')
+  const isAppRoute =
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname === '/explore' ||
+    location.pathname === '/contact'
   const isAuthRoute =
     location.pathname.startsWith('/sign-in') || location.pathname.startsWith('/sign-up')
 
@@ -95,7 +98,7 @@ const RootLayout = () => {
           </div>
         </header>
 
-        <main className={`rootMain ${isDashboardRoute ? 'rootMain--app' : 'rootMain--public'}`}>
+        <main className={`rootMain ${isAppRoute ? 'rootMain--app' : 'rootMain--public'}`}>
           <Outlet />
         </main>
       </div>

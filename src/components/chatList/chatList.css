@@ -163,6 +163,11 @@
   text-decoration: none;
 }
 
+.chatListSection--links .chatListNavLink.active {
+  border-color: rgba(47, 120, 238, 0.35);
+  background: rgba(47, 120, 238, 0.16);
+}
+
 .chatOverlay {
   position: fixed;
   inset: 0;

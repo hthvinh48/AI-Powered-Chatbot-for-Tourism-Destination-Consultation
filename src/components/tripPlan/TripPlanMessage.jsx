@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './tripPlanMessage.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
 import { useI18n } from '../../lib/useI18n'
 import { extractJsonFromText, looksLikeTripPlan, safeJsonParse } from '../../lib/tolerantJson'
+import { createTripPlanKey, emitTripPlansChanged } from '../../lib/tripPlanState'
+import useActionDialog from '../dialogs/useActionDialog'
 
 function extractPreambleText(text) {
   const value = String(text || '').trim()
@@ -67,23 +69,6 @@ function formatMoneyLike(value, lang) {
   return raw.replace(match[1], formatted)
 }
 
-function isPureNumberString(value) {
-  const raw = String(value ?? '').trim()
-  if (!raw) return false
-  return /^\d+$/.test(raw)
-}
-
-function formatMoneyWithCurrency(value, currency, lang) {
-  const raw = String(value ?? '').trim()
-  if (!raw) return ''
-
-  const formatted = formatMoneyLike(raw, lang)
-  if (!isPureNumberString(raw)) return formatted
-
-  const cur = String(currency || '').trim()
-  return cur ? `${formatted} ${cur}` : formatted
-}
-
 function safeUrl(value) {
   const url = String(value || '').trim()
   if (!url) return ''
@@ -91,12 +76,14 @@ function safeUrl(value) {
   return ''
 }
 
-const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
+const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = null }) => {
   const notify = useNotify()
   const { t, lang } = useI18n()
+  const { askConfirm, dialogNode } = useActionDialog()
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [savedId, setSavedId] = useState(null)
+  const [savedLocally, setSavedLocally] = useState(false)
+  const [brokenImages, setBrokenImages] = useState({})
 
   const wrapper = useMemo(() => parseWrapper(content), [content])
   const tripPlan = useMemo(() => {
@@ -107,9 +94,34 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
     () => String(wrapper?.resp || extractPreambleText(content) || '').trim(),
     [content, wrapper],
   )
+  const canSave = allowSave && Number.isFinite(chatId)
+  const tripPlanKey = useMemo(() => createTripPlanKey(chatId, tripPlan), [chatId, tripPlan])
+  const isSavedFromServer = useMemo(() => {
+    if (!(savedTripKeys instanceof Set)) return false
+    if (!tripPlanKey) return false
+    return savedTripKeys.has(tripPlanKey)
+  }, [savedTripKeys, tripPlanKey])
+  const isSaved = savedLocally || isSavedFromServer
+
+  useEffect(() => {
+    setSavedLocally(false)
+    setBrokenImages({})
+  }, [chatId, content])
+
+  useEffect(() => {
+    if (!isSavedFromServer) setSavedLocally(false)
+  }, [isSavedFromServer])
 
   if (!tripPlan) return null
   if (!isValidTripPlan(tripPlan)) {
+    if (resp) {
+      return (
+        <article className="tripPlanCard">
+          <p className="tripPlanResp">{resp}</p>
+        </article>
+      )
+    }
+
     return (
       <div className="tripPlanCard">
         <div className="tripPlanTitle">{t('trip.invalid')}</div>
@@ -121,11 +133,90 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
   const hotels = Array.isArray(tripPlan.hotels) ? tripPlan.hotels : []
   const places = Array.isArray(tripPlan.places_to_visit) ? tripPlan.places_to_visit : []
   const itinerary = Array.isArray(tripPlan.itinerary) ? tripPlan.itinerary : []
-  const canSave = allowSave && Number.isFinite(chatId)
+
+  const infoItems = [
+    {
+      key: 'origin',
+      icon: 'ti ti-map-pin',
+      label: t('trip.field.origin'),
+      value: tripPlan.origin,
+    },
+    {
+      key: 'destination',
+      icon: 'ti ti-route-2',
+      label: t('trip.field.destination'),
+      value: tripPlan.destination,
+    },
+    {
+      key: 'duration',
+      icon: 'ti ti-clock-hour-4',
+      label: t('trip.field.duration'),
+      value: tripPlan.duration,
+    },
+    {
+      key: 'budget',
+      icon: 'ti ti-wallet',
+      label: t('trip.field.budget'),
+      value: tripPlan.budget ? formatMoneyLike(tripPlan.budget, lang) : '',
+    },
+    {
+      key: 'currency',
+      icon: 'ti ti-currency-dollar',
+      label: t('trip.field.currency'),
+      value: tripPlan.currency,
+    },
+    {
+      key: 'total',
+      icon: 'ti ti-cash-banknote',
+      label: t('trip.field.total'),
+      value: tripPlan.total_estimated_cost ? formatMoneyLike(tripPlan.total_estimated_cost, lang) : '',
+    },
+    {
+      key: 'group',
+      icon: 'ti ti-users',
+      label: t('trip.field.group'),
+      value: tripPlan.group_size,
+    },
+  ].filter((item) => String(item.value || '').trim())
+
+  const modalMetaItems = [
+    {
+      key: 'duration',
+      icon: 'ti ti-clock-hour-4',
+      value: tripPlan.duration,
+    },
+    tripPlan.group_size
+      ? {
+          key: 'group',
+          icon: 'ti ti-users',
+          value: tripPlan.group_size,
+        }
+      : null,
+    tripPlan.total_estimated_cost
+      ? {
+          key: 'total',
+          icon: 'ti ti-cash-banknote',
+          value: formatMoneyLike(tripPlan.total_estimated_cost, lang),
+        }
+      : null,
+  ].filter(Boolean)
+
+  const markImageBroken = (key) => {
+    setBrokenImages((prev) => {
+      if (prev[key]) return prev
+      return { ...prev, [key]: true }
+    })
+  }
 
   const savePlan = async () => {
-    if (!canSave || saving || savedId) return
-    const ok = window.confirm(t('trip.confirm_save'))
+    if (!canSave || saving || isSaved) return
+    const ok = await askConfirm({
+      title: t('common.confirm'),
+      message: t('trip.confirm_save'),
+      confirmText: t('trip.save'),
+      tone: 'info',
+      confirmVariant: 'primary',
+    })
     if (!ok) return
 
     setSaving(true)
@@ -134,7 +225,8 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
         method: 'POST',
         body: { resp, trip_plan: tripPlan },
       })
-      setSavedId(res?.tripPlanId || true)
+      setSavedLocally(true)
+      emitTripPlansChanged({ type: 'saved', chatId, tripPlanId: res?.tripPlanId ?? null })
       notify.success(t('trip.saved_ok'))
     } catch (err) {
       notify.error(err?.message || t('trip.saved_fail'))
@@ -196,10 +288,10 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
               type="button"
               className="tripPlanBtn tripPlanBtnPrimary"
               onClick={savePlan}
-              disabled={saving || Boolean(savedId)}
+              disabled={saving || isSaved}
             >
               <i className="ti ti-device-floppy" />
-              {savedId ? t('trip.saved') : saving ? t('trip.saving') : t('trip.save')}
+              {isSaved ? t('trip.saved') : saving ? t('trip.saving') : t('trip.save')}
             </button>
           ) : null}
         </div>
@@ -212,6 +304,21 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
               <div className="tripPlanModalTitleWrap">
                 <span className="tripPlanModalLabel">{t('trip.window_title')}</span>
                 <h4 className="tripPlanModalTitle">{tripPlan.destination}</h4>
+                <div className="tripPlanRouteLine">
+                  <span>{tripPlan.origin}</span>
+                  <i className="ti ti-arrow-right" />
+                  <span>{tripPlan.destination}</span>
+                </div>
+                {modalMetaItems.length > 0 ? (
+                  <div className="tripPlanModalMetaStrip">
+                    {modalMetaItems.map((item) => (
+                      <span key={item.key}>
+                        <i className={item.icon} />
+                        {item.value}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <button type="button" className="tripPlanClose" onClick={() => setOpen(false)} aria-label={t('common.close')}>
                 <i className="ti ti-x" />
@@ -224,42 +331,15 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                 <h5>{t('trip.section.info')}</h5>
               </div>
               <div className="tripPlanInfoGrid">
-                <div className="tripPlanInfoItem">
-                  <span>{t('trip.field.origin')}</span>
-                  <strong>{tripPlan.origin}</strong>
-                </div>
-                <div className="tripPlanInfoItem">
-                  <span>{t('trip.field.destination')}</span>
-                  <strong>{tripPlan.destination}</strong>
-                </div>
-                <div className="tripPlanInfoItem">
-                  <span>{t('trip.field.duration')}</span>
-                  <strong>{tripPlan.duration}</strong>
-                </div>
-                {tripPlan.budget ? (
-                  <div className="tripPlanInfoItem">
-                    <span>{t('trip.field.budget')}</span>
-                    <strong>{formatMoneyLike(tripPlan.budget, lang)}</strong>
+                {infoItems.map((item) => (
+                  <div key={item.key} className="tripPlanInfoItem">
+                    <div className="tripPlanInfoLabel">
+                      <i className={item.icon} />
+                      <span>{item.label}</span>
+                    </div>
+                    <strong>{item.value}</strong>
                   </div>
-                ) : null}
-                {tripPlan.currency ? (
-                  <div className="tripPlanInfoItem">
-                    <span>{t('trip.field.currency')}</span>
-                    <strong>{tripPlan.currency}</strong>
-                  </div>
-                ) : null}
-                {tripPlan.total_estimated_cost ? (
-                  <div className="tripPlanInfoItem">
-                    <span>{t('trip.field.total')}</span>
-                    <strong>{formatMoneyWithCurrency(tripPlan.total_estimated_cost, tripPlan.currency, lang)}</strong>
-                  </div>
-                ) : null}
-                {tripPlan.group_size ? (
-                  <div className="tripPlanInfoItem">
-                    <span>{t('trip.field.group')}</span>
-                    <strong>{tripPlan.group_size}</strong>
-                  </div>
-                ) : null}
+                ))}
               </div>
             </section>
 
@@ -272,15 +352,25 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                 <div className="tripPlanEntityGrid">
                   {hotels.map((hotel, idx) => {
                     const imageUrl = safeUrl(hotel.hotel_image_url)
+                    const imageKey = `hotel-${idx}-${imageUrl || 'none'}`
+                    const showImage = Boolean(imageUrl) && !brokenImages[imageKey]
                     return (
                       <article key={`hotel-${idx}`} className="tripPlanEntityCard">
-                        {imageUrl ? (
-                          <img className="tripPlanEntityImg" src={imageUrl} alt={hotel.hotel_name || 'hotel'} />
-                        ) : (
-                          <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
-                            <i className="ti ti-photo-off" />
-                          </div>
-                        )}
+                        <div className="tripPlanEntityMedia">
+                          {showImage ? (
+                            <img
+                              className="tripPlanEntityImg"
+                              src={imageUrl}
+                              alt={hotel.hotel_name || 'hotel'}
+                              onError={() => markImageBroken(imageKey)}
+                            />
+                          ) : (
+                            <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
+                              <i className="ti ti-photo-off" />
+                              <span>{hotel.hotel_name || '-'}</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="tripPlanEntityBody">
                           <h6>{hotel.hotel_name || '-'}</h6>
                           {hotel.hotel_address ? <p>{hotel.hotel_address}</p> : null}
@@ -289,7 +379,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                             {hotel.price_per_night ? (
                               <span>
                                 <i className="ti ti-cash" />
-                                {formatMoneyWithCurrency(hotel.price_per_night, tripPlan.currency, lang)}
+                                {formatMoneyLike(hotel.price_per_night, lang)}
                               </span>
                             ) : null}
                             {hotel.rating != null ? (
@@ -316,15 +406,25 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                 <div className="tripPlanEntityGrid">
                   {places.map((place, idx) => {
                     const imageUrl = safeUrl(place.place_image_url)
+                    const imageKey = `place-${idx}-${imageUrl || 'none'}`
+                    const showImage = Boolean(imageUrl) && !brokenImages[imageKey]
                     return (
                       <article key={`place-${idx}`} className="tripPlanEntityCard">
-                        {imageUrl ? (
-                          <img className="tripPlanEntityImg" src={imageUrl} alt={place.place_name || 'place'} />
-                        ) : (
-                          <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
-                            <i className="ti ti-photo-off" />
-                          </div>
-                        )}
+                        <div className="tripPlanEntityMedia">
+                          {showImage ? (
+                            <img
+                              className="tripPlanEntityImg"
+                              src={imageUrl}
+                              alt={place.place_name || 'place'}
+                              onError={() => markImageBroken(imageKey)}
+                            />
+                          ) : (
+                            <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
+                              <i className="ti ti-photo-off" />
+                              <span>{place.place_name || '-'}</span>
+                            </div>
+                          )}
+                        </div>
                         <div className="tripPlanEntityBody">
                           <h6>{place.place_name || '-'}</h6>
                           {place.place_address ? <p>{place.place_address}</p> : null}
@@ -333,7 +433,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                             {place.ticket_pricing ? (
                               <span>
                                 <i className="ti ti-ticket" />
-                                {formatMoneyWithCurrency(place.ticket_pricing, tripPlan.currency, lang)}
+                                {formatMoneyLike(place.ticket_pricing, lang)}
                               </span>
                             ) : null}
                             {place.best_time_to_visit ? (
@@ -359,10 +459,6 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
               <div className="tripPlanDays">
                 {itinerary.map((day, idx) => {
                   const activities = Array.isArray(day.activities) ? day.activities : []
-                  const bestTimeForDay =
-                    day.best_time_to_visit_day ||
-                    (activities.find((a) => a && typeof a.best_time_to_visit === 'string' && a.best_time_to_visit.trim())
-                      ?.best_time_to_visit || '')
                   return (
                     <article key={`day-${day.day || idx}`} className="tripPlanDayCard">
                       <header className="tripPlanDayHead">
@@ -370,16 +466,16 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                         <div className="tripPlanDayTitleWrap">
                           <h6>{day.day_plan || `${t('trip.meta.days')} ${day.day || idx + 1}`}</h6>
                           <div className="tripPlanDayMeta">
-                            {bestTimeForDay ? (
+                            {day.best_time_to_visit_day ? (
                               <span>
                                 <i className="ti ti-clock-hour-4" />
-                                {bestTimeForDay}
+                                {day.best_time_to_visit_day}
                               </span>
                             ) : null}
                             {day.estimated_cost ? (
                               <span>
                                 <i className="ti ti-cash" />
-                                {formatMoneyWithCurrency(day.estimated_cost, tripPlan.currency, lang)}
+                                {formatMoneyLike(day.estimated_cost, lang)}
                               </span>
                             ) : null}
                           </div>
@@ -404,19 +500,13 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                                   {activity.ticket_pricing ? (
                                     <span>
                                       <i className="ti ti-ticket" />
-                                      {formatMoneyWithCurrency(activity.ticket_pricing, tripPlan.currency, lang)}
+                                      {formatMoneyLike(activity.ticket_pricing, lang)}
                                     </span>
                                   ) : null}
                                   {activity.time_travel_each_location ? (
                                     <span>
                                       <i className="ti ti-route" />
                                       {activity.time_travel_each_location}
-                                    </span>
-                                  ) : null}
-                                  {activity.best_time_to_visit ? (
-                                    <span>
-                                      <i className="ti ti-sun" />
-                                      {activity.best_time_to_visit}
                                     </span>
                                   ) : null}
                                 </div>
@@ -435,6 +525,8 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
           </div>
         </div>
       ) : null}
+
+      {dialogNode}
     </>
   )
 }

@@ -67,17 +67,70 @@ export async function pingApi() {
   return apiRequest("/api/health", { method: "GET", credentials: "omit" });
 }
 
+async function exchangeBackendAuthFromClerk(stored, setBackendAuth) {
+  if (typeof window === "undefined") return null;
+
+  const clerkSession = window?.Clerk?.session;
+  const getToken = clerkSession?.getToken;
+  if (typeof getToken !== "function") return null;
+
+  const clerkToken = await getToken.call(clerkSession);
+  if (!clerkToken) return null;
+
+  const data = await apiRequest("/api/auth/clerk/exchange", {
+    method: "POST",
+    credentials: "omit",
+    headers: { Authorization: `Bearer ${clerkToken}` },
+  });
+
+  const next = {
+    clerkUserId: stored?.clerkUserId || window?.Clerk?.user?.id || data?.user?.id || null,
+    accessToken: data?.accessToken || null,
+    refreshToken: data?.refreshToken || null,
+    user: data?.user || stored?.user || null,
+  };
+
+  if (!next.accessToken || !next.refreshToken) return null;
+  setBackendAuth(next);
+  return next;
+}
+
 export async function apiRequestBackend(path, options = {}) {
   const { getBackendAuth, setBackendAuth, clearBackendAuth } = await import("./backendAuth.js");
-  const stored = getBackendAuth();
+  let stored = getBackendAuth();
 
-  const accessToken = stored?.accessToken || null;
-  const refreshToken = stored?.refreshToken || null;
+  let accessToken = stored?.accessToken || null;
+  let refreshToken = stored?.refreshToken || null;
+
+  if (!accessToken || !refreshToken) {
+    try {
+      const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+      if (exchanged) {
+        stored = exchanged;
+        accessToken = exchanged.accessToken;
+        refreshToken = exchanged.refreshToken;
+      }
+    } catch {
+      // Let the request below throw its own auth error when exchange is not available.
+    }
+  }
 
   try {
     return await apiRequest(path, { ...options, token: accessToken });
   } catch (err) {
-    if (err?.status !== 401 || !refreshToken) throw err;
+    if (err?.status !== 401) throw err;
+
+    if (!refreshToken) {
+      try {
+        const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+        if (exchanged?.accessToken) {
+          return await apiRequest(path, { ...options, token: exchanged.accessToken });
+        }
+      } catch {
+        // Fall through and throw original unauthorized error.
+      }
+      throw err;
+    }
 
     try {
       const refreshed = await apiRequest("/api/auth/refresh", {
@@ -95,6 +148,16 @@ export async function apiRequestBackend(path, options = {}) {
       return apiRequest(path, { ...options, token: refreshed?.accessToken });
     } catch (refreshErr) {
       clearBackendAuth();
+
+      try {
+        const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+        if (exchanged?.accessToken) {
+          return await apiRequest(path, { ...options, token: exchanged.accessToken });
+        }
+      } catch {
+        // Fall through and throw refresh error.
+      }
+
       throw refreshErr;
     }
   }

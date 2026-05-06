@@ -44,7 +44,8 @@ export function parseTripPlanFromAny(text) {
   const candidate = extractJsonFromText(s) || s
   const obj = safeJsonParse(candidate)
   if (!obj || typeof obj !== 'object') return null
-  if (obj.trip_plan && typeof obj.trip_plan === 'object') return obj.trip_plan
+  if (obj.trip_plan && typeof obj.trip_plan === 'object' && looksLikeTripPlan(obj.trip_plan)) return obj.trip_plan
+  if (obj.tripPlan && typeof obj.tripPlan === 'object' && looksLikeTripPlan(obj.tripPlan)) return obj.tripPlan
   if (looksLikeTripPlan(obj)) return obj
   return null
 }

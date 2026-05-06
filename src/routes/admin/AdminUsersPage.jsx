@@ -4,6 +4,7 @@ import { getBackendAuth } from '../../lib/backendAuth'
 import { useNotify } from '../../components/notifications/useNotify'
 import { useI18n } from '../../lib/useI18n'
 import AdminDataTable from './AdminDataTable.jsx'
+import useActionDialog from '../../components/dialogs/useActionDialog'
 
 const USER_TABLE_SORT_MAP = {
   username: 'username',
@@ -17,6 +18,7 @@ const AdminUsersPage = () => {
   const canManageRoles = me?.role === 'SUPER_ADMIN'
   const notify = useNotify()
   const { t } = useI18n()
+  const { askConfirm, askPrompt, dialogNode } = useActionDialog()
 
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -97,18 +99,42 @@ const AdminUsersPage = () => {
   }
 
   const setBan = async (u, ban) => {
-    setSavingId(u.id)
     setError('')
     try {
+      let reason = ''
       if (ban) {
-        const reason = window.prompt(`${t('admin.ban_prompt_reason')} ${u.email}?`) || ''
-        const ok = window.confirm(`${t('admin.ban_confirm')} ${u.email}?`)
+        const promptResult = await askPrompt({
+          title: t('admin.ban_confirm'),
+          message: u.email,
+          promptLabel: t('admin.ban_prompt_reason'),
+          confirmText: t('admin.apply'),
+          tone: 'warning',
+          confirmVariant: 'warning',
+        })
+        if (promptResult === null) return
+        reason = promptResult.trim()
+
+        const ok = await askConfirm({
+          title: t('common.confirm'),
+          message: `${t('admin.ban_confirm')} ${u.email}?`,
+          confirmText: t('admin.ban'),
+          tone: 'danger',
+          confirmVariant: 'danger',
+        })
         if (!ok) return
+        setSavingId(u.id)
         await apiRequestBackend(`/api/admin/users/${u.id}/ban`, { method: 'POST', body: { reason } })
         notify.success(t('admin.user_banned'))
       } else {
-        const ok = window.confirm(`${t('admin.unban_confirm')} ${u.email}?`)
+        const ok = await askConfirm({
+          title: t('common.confirm'),
+          message: `${t('admin.unban_confirm')} ${u.email}?`,
+          confirmText: t('admin.unban'),
+          tone: 'warning',
+          confirmVariant: 'warning',
+        })
         if (!ok) return
+        setSavingId(u.id)
         await apiRequestBackend(`/api/admin/users/${u.id}/unban`, { method: 'POST' })
         notify.success(t('admin.user_unbanned'))
       }
@@ -126,7 +152,13 @@ const AdminUsersPage = () => {
     const nextRole = pendingRoleById[u.id]
     if (!nextRole || nextRole === u.role) return
 
-    const ok = window.confirm(`${t('admin.confirm_role')} ${u.email}: ${u.role} -> ${nextRole}?`)
+    const ok = await askConfirm({
+      title: t('common.confirm'),
+      message: `${t('admin.confirm_role')} ${u.email}: ${u.role} -> ${nextRole}?`,
+      confirmText: t('admin.apply'),
+      tone: 'warning',
+      confirmVariant: 'warning',
+    })
     if (!ok) {
       setPendingRoleById((prev) => ({ ...prev, [u.id]: u.role }))
       return
@@ -372,6 +404,7 @@ const AdminUsersPage = () => {
           />
         </div>
       </div>
+      {dialogNode}
     </div>
   )
 }

@@ -1,0 +1,177 @@
+.actionDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  background: rgba(5, 11, 24, 0.64);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.actionDialogCard {
+  width: min(460px, 94vw);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--surface-2);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.34);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actionDialogCard--info {
+  border-color: rgba(47, 120, 238, 0.42);
+}
+
+.actionDialogCard--warning {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.actionDialogCard--danger {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.actionDialogCard--success {
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.actionDialogTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--app-fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionDialogToneIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.actionDialogToneIcon--info {
+  background: rgba(47, 120, 238, 0.18);
+  color: #7fb4ff;
+}
+
+.actionDialogToneIcon--warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f6bf5e;
+}
+
+.actionDialogToneIcon--danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ff9b9b;
+}
+
+.actionDialogToneIcon--success {
+  background: rgba(34, 197, 94, 0.18);
+  color: #70d49c;
+}
+
+.actionDialogMessage {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.actionDialogField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.actionDialogInput {
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--control-border);
+  background: var(--surface-3);
+  color: var(--app-fg);
+  padding: 0 10px;
+  outline: none;
+}
+
+.actionDialogInput:focus {
+  border-color: var(--accent-hover-border);
+}
+
+.actionDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actionDialogBtn {
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionDialogBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actionDialogBtn--ghost {
+  background: transparent;
+  border-color: var(--control-border);
+  color: var(--app-fg);
+}
+
+.actionDialogBtn--ghost:hover {
+  background: var(--hover-bg);
+}
+
+.actionDialogBtn--primary {
+  background: #2f78ee;
+  border-color: #2f78ee;
+  color: #fff;
+}
+
+.actionDialogBtn--primary:hover:not(:disabled) {
+  background: #275fbc;
+  border-color: #275fbc;
+}
+
+.actionDialogBtn--danger {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.42);
+  color: #ff8d8d;
+}
+
+.actionDialogBtn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+  border-color: rgba(239, 68, 68, 0.55);
+}
+
+.actionDialogBtn--warning {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #ffd186;
+}
+
+.actionDialogBtn--warning:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.24);
+  border-color: rgba(245, 158, 11, 0.58);
+}

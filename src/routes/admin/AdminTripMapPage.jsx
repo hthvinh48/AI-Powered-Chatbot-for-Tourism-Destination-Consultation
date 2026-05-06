@@ -23,6 +23,28 @@ function makeStopKey(value) {
     return normalizeText(value).toLowerCase().replace(/\s+/g, ' ')
 }
 
+function makeStopIdentityKey(stop) {
+    const nameKey = makeStopKey(stop?.name)
+    const addressKey = makeStopKey(stop?.address)
+    const queryKey = makeStopKey(stop?.query)
+
+    if (nameKey && addressKey) return `${nameKey}::${addressKey}`
+    if (queryKey) return queryKey
+    return `${nameKey || 'stop'}::${addressKey || ''}`
+}
+
+function makeCoordKey(coord) {
+    if (!isValidCoord(coord)) return ''
+    return `coord:${Number(coord.lat).toFixed(5)},${Number(coord.lng).toFixed(5)}`
+}
+
+function makeStopGroupKey(stop, cache) {
+    const coord = getCachedCoordForStop(stop, cache)
+    const coordKey = makeCoordKey(coord)
+    if (coordKey) return coordKey
+    return makeStopIdentityKey(stop)
+}
+
 function buildGeoQueries(name, address, destination) {
     const raw = [
         [address, destination].filter(Boolean).join(', '),
@@ -386,6 +408,49 @@ const AdminTripMapPage = () => {
         return allStops.filter((stop) => stop.day === dayNum)
     }, [allStops, selectedDay])
 
+    const visitOrderByStopId = useMemo(() => {
+        const next = {}
+        allStops.forEach((stop, index) => {
+            next[stop.id] = index + 1
+        })
+        return next
+    }, [allStops])
+
+    const stopMetaById = useMemo(() => {
+        const firstOrderByIdentity = new Map()
+        const visibleOrdersByIdentity = new Map()
+        const metaById = {}
+
+        filteredStops.forEach((stop, index) => {
+            const visitOrder = visitOrderByStopId[stop.id] ?? index + 1
+            const groupKey = makeStopGroupKey(stop, coordsByQuery)
+            if (!firstOrderByIdentity.has(groupKey)) {
+                firstOrderByIdentity.set(groupKey, visitOrder)
+            }
+            if (!visibleOrdersByIdentity.has(groupKey)) {
+                visibleOrdersByIdentity.set(groupKey, [])
+            }
+            visibleOrdersByIdentity.get(groupKey).push(visitOrder)
+        })
+
+        filteredStops.forEach((stop, index) => {
+            const visitOrder = visitOrderByStopId[stop.id] ?? index + 1
+            const groupKey = makeStopGroupKey(stop, coordsByQuery)
+            const rawOrders = visibleOrdersByIdentity.get(groupKey) || [visitOrder]
+            const orderList = [...new Set(rawOrders)].sort((a, b) => a - b)
+            const orderLabel = orderList.length > 1 ? orderList.join('/') : String(visitOrder)
+            metaById[stop.id] = {
+                identityKey: groupKey,
+                visitOrder,
+                markerOrder: firstOrderByIdentity.get(groupKey) ?? visitOrder,
+                orderList,
+                orderLabel,
+            }
+        })
+
+        return metaById
+    }, [filteredStops, visitOrderByStopId, coordsByQuery])
+
     useEffect(() => {
         if (!focusedStopId) return
         const exists = filteredStops.some((stop) => stop.id === focusedStopId)
@@ -485,9 +550,44 @@ const AdminTripMapPage = () => {
 
     const mappableStops = useMemo(() => {
         return filteredStops
-            .map((stop) => ({ ...stop, coord: getCachedCoordForStop(stop, coordsByQuery) }))
+            .map((stop) => {
+                const meta = stopMetaById[stop.id]
+                return {
+                ...stop,
+                    identityKey: meta?.identityKey || makeStopIdentityKey(stop),
+                    visitOrder: meta?.visitOrder ?? 0,
+                    markerOrder: meta?.markerOrder ?? 0,
+                    orderList: meta?.orderList || [],
+                    orderLabel: meta?.orderLabel || '',
+                coord: getCachedCoordForStop(stop, coordsByQuery),
+                }
+            })
             .filter((stop) => isValidCoord(stop.coord))
-    }, [filteredStops, coordsByQuery])
+    }, [filteredStops, stopMetaById, coordsByQuery])
+
+    const markerStops = useMemo(() => {
+        const grouped = new Map()
+        mappableStops.forEach((stop) => {
+            const key = stop.identityKey || makeStopIdentityKey(stop)
+            const existing = grouped.get(key)
+            if (!existing) {
+                grouped.set(key, {
+                    ...stop,
+                    visits: [stop],
+                })
+                return
+            }
+
+            existing.visits.push(stop)
+            const mergedOrderSet = new Set([
+                ...(Array.isArray(existing.orderList) ? existing.orderList : []),
+                ...(Array.isArray(stop.orderList) ? stop.orderList : []),
+            ])
+            existing.orderList = [...mergedOrderSet].sort((a, b) => a - b)
+            existing.orderLabel = existing.orderList.length > 1 ? existing.orderList.join('/') : String(existing.visitOrder || stop.visitOrder || '')
+        })
+        return [...grouped.values()]
+    }, [mappableStops])
 
     const unmappedStops = useMemo(
         () => filteredStops.filter((stop) => !getCachedCoordForStop(stop, coordsByQuery)),
@@ -506,10 +606,10 @@ const AdminTripMapPage = () => {
             return
         }
 
-        const latLngs = []
-        mappableStops.forEach((stop, index) => {
+        const markerLatLngs = []
+        markerStops.forEach((stop, index) => {
             const latLng = [stop.coord.lat, stop.coord.lng]
-            latLngs.push(latLng)
+            markerLatLngs.push(latLng)
             const color = STOP_COLORS[stop.type] || '#2f78ee'
             const marker = L.circleMarker(latLng, {
                 radius: 7,
@@ -519,10 +619,17 @@ const AdminTripMapPage = () => {
                 weight: 2,
             })
 
+            const visitDayLabels = [...new Set(
+                stop.visits
+                    .map((visit) => (Number.isFinite(visit.day) ? `${t('admin.map.day_prefix')} ${visit.day}` : ''))
+                    .filter(Boolean),
+            )]
+
             const popup = `
         <div class="admin-map-popup">
           <b>${escapeHtml(stop.name)}</b><br/>
-          ${stop.day ? `Day ${stop.day}<br/>` : ''}
+          ${stop.orderLabel ? `#${escapeHtml(stop.orderLabel)}<br/>` : ''}
+          ${visitDayLabels.length > 0 ? `${escapeHtml(visitDayLabels.join(', '))}<br/>` : ''}
           ${stop.address ? `${escapeHtml(stop.address)}<br/>` : ''}
           ${stop.details ? `<span>${escapeHtml(stop.details)}</span>` : ''}
         </div>
@@ -530,31 +637,35 @@ const AdminTripMapPage = () => {
 
             marker.bindPopup(popup)
             marker.addTo(layerGroup)
-            markerByStopIdRef.current[stop.id] = { marker, latLng }
+            stop.visits.forEach((visit) => {
+                markerByStopIdRef.current[visit.id] = { marker, latLng }
+            })
 
             L.tooltip({
                 permanent: true,
                 direction: 'top',
                 className: 'admin-map-order',
             })
-                .setContent(String(index + 1))
+                .setContent(String(stop.orderLabel || stop.markerOrder || index + 1))
                 .setLatLng(latLng)
                 .addTo(layerGroup)
         })
 
-        if (latLngs.length > 1) {
-            L.polyline(latLngs, {
+        const routeLatLngs = mappableStops.map((stop) => [stop.coord.lat, stop.coord.lng])
+
+        if (routeLatLngs.length > 1) {
+            L.polyline(routeLatLngs, {
                 color: '#4d8ff7',
                 opacity: 0.8,
                 weight: 3,
             }).addTo(layerGroup)
         }
 
-        map.fitBounds(L.latLngBounds(latLngs), {
+        map.fitBounds(L.latLngBounds(markerLatLngs), {
             padding: [30, 30],
             maxZoom: 13,
         })
-    }, [mappableStops])
+    }, [mappableStops, markerStops, t])
 
     const onResolveAll = async () => {
         const missing = filteredStops.filter((stop) => !getCachedCoordForStop(stop, coordsByQuery))
@@ -763,7 +874,8 @@ const AdminTripMapPage = () => {
                             <div className="admin-map-unmapped">
                                 <div className="admin-map-unmapped-title">{t('admin.map.unmapped_list')}</div>
                                 <div className="admin-map-unmapped-list">
-                                    {unmappedStops.map((stop, index) => (
+                                    {unmappedStops.map((stop, index) => {
+                                        return (
                                         <div key={stop.id} className="admin-map-unmapped-item">
                                             <span>{index + 1}.</span>
                                             <div>
@@ -771,7 +883,8 @@ const AdminTripMapPage = () => {
                                                 <small>{stop.address || stop.query}</small>
                                             </div>
                                         </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </div>
                         ) : null}

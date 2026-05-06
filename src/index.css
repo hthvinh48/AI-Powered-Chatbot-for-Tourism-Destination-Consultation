@@ -14,7 +14,7 @@ body,
 body {
   background: var(--app-bg);
   color: var(--app-fg);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.45;
 }
 
@@ -57,6 +57,9 @@ select {
 }
 
 :root {
+  --font-ui: 'Inter', 'Segoe UI', 'Noto Sans', system-ui, -apple-system, sans-serif;
+  --font-ui-vi: 'Be Vietnam Pro', 'Noto Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+
   --app-bg: #0f141d;
   --app-fg: #e6edf6;
 
@@ -83,6 +86,13 @@ select {
   --accent-hover-border: rgba(74, 144, 255, 0.45);
   --accent-selection: rgba(74, 144, 255, 0.25);
   --scroll-thumb: rgba(157, 178, 201, 0.45);
+}
+
+:root[data-lang='vi'] body {
+  font-family: var(--font-ui-vi);
+  line-height: 1.52;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 :root[data-theme='light'] {

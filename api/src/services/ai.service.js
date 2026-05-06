@@ -1,5 +1,17 @@
 const openai = require("../config/openai");
 
+const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
+
+function stripAccents(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalize(value) {
+  return stripAccents(value).toLowerCase();
+}
+
 function extractJsonFromText(text) {
   const s = String(text || "");
   const fence =
@@ -42,28 +54,84 @@ function tryExtractTripPlan(content) {
   }
 }
 
-const PROMPT = `
-You are an expert AI Trip Planner Agent. Your mission is to gather 7 specific details and then generate a COMPLETE, high-quality travel plan in JSON.
+function stripInternalGuide(value) {
+  const raw = String(value || "");
+  if (!raw) return "";
+  if (!raw.includes(QUICK_GUIDE_TOKEN)) return raw.trim();
+  return raw.replace(/\s*\[\[ASSISTANT_GUIDE_QUICK_SUGGESTION\]\][\s\S]*$/i, "").trim();
+}
 
-### STAGE 1: SMART DATA COLLECTION
-- Scan user input for: [Source], [Destination], [GroupSize], [Budget], [Days], [Interests], [Special].
-- IMMEDIATE EXTRACTION: Mark details as COMPLETED if provided. Do NOT ask for info already known.
-- If the user says "Ok", "Hợp lý" or "Không có yêu cầu gì", proceed to generate the plan immediately.
+function looksLikeStructuredPlanInput(value) {
+  const text = String(value || "");
+  return /(^|\n)\s*(origin|destination|duration|budget|group_size|interests|preferences)\s*[:=]/i.test(text);
+}
 
-### STAGE 2: GENERATION RULES (STRICT MANTRA)
-Only when details are sufficient, generate the JSON plan following these strict rules:
+function isQuickSuggestionIntent(value) {
+  const text = normalize(value);
+  if (!text) return false;
+  const suggestSignals = [
+    "goi y",
+    "de xuat",
+    "nen di dau",
+    "di dau",
+    "choi gi",
+    "an gi",
+    "recommend",
+    "suggest",
+    "where to go",
+    "places to visit",
+    "travel spots",
+  ];
+  const locationSignals = [
+    "ha noi",
+    "hanoi",
+    "ho chi minh",
+    "sai gon",
+    "da nang",
+    "can tho",
+    "nha trang",
+    "hue",
+    "da lat",
+    "quy nhon",
+  ];
+  const hasSuggestSignal = suggestSignals.some((k) => text.includes(k));
+  const hasLocationSignal = locationSignals.some((k) => text.includes(k));
+  const hasPlacePattern = /\b(o|tai|in|at|near)\b\s+.{2,}/i.test(text);
+  return hasSuggestSignal && (hasLocationSignal || hasPlacePattern);
+}
 
-1. FULL DAY COVERAGE: Each day in "itinerary" MUST have at least 4-5 activity objects. You are FORBIDDEN from leaving a morning, afternoon, or evening empty.
-2. MANDATORY TIME SLOTS: For every single day, you MUST include:
-   - Morning: 01 Breakfast place + 01 Major sightseeing spot.
-   - Afternoon: 01 Lunch place + 01 Secondary spot + 01 Cafe/Photo-op spot.
-   - Evening: 01 Dinner place + 01 Night activity (Market, Bridge, Walking street, or Bar).
-3. DETAILED OBJECTS ONLY: Every activity (even a breakfast or a cafe) MUST be a full object with place_name, place_details, geo_coordinates, and image_url.
-4. ACCOMMODATION STRATEGY: For trips >= 5 days, suggest 2-3 different hotels in the "hotels" array to optimize travel.
-5. NO SHORTCUTS: Do not use "//" or "Similar to...". Generate every day explicitly.
-6. COMPONENT TAG: The final JSON response must be preceded by "Component: final".
+function getLastUserMessage(messages) {
+  if (!Array.isArray(messages)) return "";
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const msg = messages[i];
+    if (String(msg?.role || "").toLowerCase() !== "user") continue;
+    return String(msg?.content || "").trim();
+  }
+  return "";
+}
 
-### STAGE 3: OUTPUT SCHEMA (JSON)
+const SYSTEM_PROMPT = `
+You are an expert AI Trip Planner assistant.
+
+First decide intent:
+1) QUICK RECOMMENDATION intent
+2) FULL TRIP PLAN intent
+
+QUICK RECOMMENDATION intent examples:
+- "goi y dia diem du lich o Ha Noi"
+- "nen di dau o Da Nang"
+- "recommend places in HCMC"
+
+For QUICK RECOMMENDATION intent:
+- Reply directly with useful suggestions.
+- Keep it concise, friendly, practical.
+- Do NOT require mandatory full-plan fields (origin/group size/budget/days) when user only asks quick suggestions.
+- If budget is unknown, suggest options by budget level (budget / medium / premium).
+- Return plain text only (no JSON required).
+
+FULL TRIP PLAN intent:
+- User explicitly asks for complete itinerary OR provides structured planning fields.
+- In this mode, output JSON with exact shape:
 {
   "resp": "string",
   "trip_plan": {
@@ -98,14 +166,45 @@ Only when details are sufficient, generate the JSON plan following these strict 
   }
 }
 
-Use Vietnamese for Vietnamese input. Respond ONLY with JSON after "Component: final".`;
+Vietnamese wording preference:
+- "origin" => "diem khoi hanh" or "diem xuat phat"
+- avoid translating it as "nguon goc"
+- If you ask follow-up in Vietnamese, use this exact friendly label set:
+  [Điểm khởi hành], [Điểm đến], [Số người], [Ngân sách], [Số ngày], [Sở thích], [Yêu cầu đặc biệt]
 
-async function generateTravelResponse(messages) {
+Language:
+- Use Vietnamese for Vietnamese input.
+`;
+
+async function generateTravelResponse(messages, options = {}) {
   try {
+    const safeMessages = Array.isArray(messages)
+      ? messages.map((m) => ({
+          role: String(m?.role || "").toLowerCase(),
+          content: stripInternalGuide(m?.content),
+        }))
+      : [];
+
+    const lastUser = stripInternalGuide(getLastUserMessage(safeMessages));
+    const guide = String(options?.guide || "").trim().toLowerCase();
+    const quickByGuide = guide === "quick_suggestion";
+    const quickByToken = String(getLastUserMessage(messages)).includes(QUICK_GUIDE_TOKEN);
+    const quickByHeuristic =
+      !looksLikeStructuredPlanInput(lastUser) && isQuickSuggestionIntent(lastUser);
+    const isQuickMode = quickByGuide || quickByToken || quickByHeuristic;
+
+    const extraSystemHint = isQuickMode
+      ? "Current intent is QUICK RECOMMENDATION. Reply directly with suggestions and do not force collecting full fields."
+      : "If user asks for full itinerary, output JSON exactly as requested.";
+
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "system", content: PROMPT }, ...messages],
-      temperature: 0.7,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: extraSystemHint },
+        ...safeMessages,
+      ],
+      temperature: 0.6,
     });
 
     const content = completion.choices[0].message.content;
@@ -146,7 +245,7 @@ Generate a travel plan given the input details.
 - Include estimated costs:
   - trip_plan.total_estimated_cost = total for the whole trip (in the currency you choose).
   - itinerary[].estimated_cost = per-day estimate (include accommodation + food + transport + tickets).
-- Use realistic-sounding information, but if you are unsure, use placeholders.
+- Use realistic-sounding information, but if unsure, use safe placeholders.
 - All image URLs must be valid-looking https URLs (placeholders allowed).
 - All geo coordinates must be numbers.
 - Output MUST match the schema exactly (field names/types).
@@ -235,7 +334,7 @@ Output schema (JSON):
         { role: "system", content: sys },
         {
           role: "user",
-          content: `Return Vietnamese-friendly "resp" like: "Cảm ơn bạn đã cung cấp đầy đủ thông tin! Dưới đây là kế hoạch chuyến đi của bạn." Then return the plan.\n\nInput:\n${JSON.stringify(
+          content: `Return Vietnamese-friendly "resp" like: "Cảm ơn bạn đã cung cấp đủ thông tin. Dưới đây là kế hoạch chuyến đi của bạn." Then return the plan.\n\nInput:\n${JSON.stringify(
             user,
           )}`,
         },

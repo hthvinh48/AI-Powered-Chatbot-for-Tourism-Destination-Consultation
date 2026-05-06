@@ -1,7 +1,7 @@
 .tripPlanCard {
   border: 1px solid var(--glass-border);
-  background: var(--surface-2);
-  border-radius: 14px;
+  background: linear-gradient(140deg, rgba(24, 39, 61, 0.92), rgba(18, 40, 62, 0.86));
+  border-radius: 12px;
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -21,8 +21,8 @@
 }
 
 .tripPlanTitle {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 21px;
+  font-weight: 800;
   letter-spacing: 0;
   color: var(--app-fg);
 }
@@ -35,19 +35,19 @@
 
 .tripPlanChip {
   height: 28px;
-  border: 1px solid var(--border);
-  background: var(--surface-3);
+  border: 1px solid rgba(111, 157, 212, 0.3);
+  background: rgba(23, 42, 66, 0.64);
   border-radius: 999px;
   padding: 0 10px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: #bdd2f0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
 .tripPlanChip i {
-  color: #5aa3ff;
+  color: #6fb2ff;
 }
 
 .tripPlanActions {
@@ -59,7 +59,7 @@
 
 .tripPlanBtn {
   height: 34px;
-  border-radius: 9px;
+  border-radius: 8px;
   border: 1px solid var(--control-border);
   background: var(--control-bg);
   color: var(--app-fg);
@@ -106,33 +106,33 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.56);
+  padding: 14px;
+  background: rgba(4, 9, 19, 0.66);
   backdrop-filter: blur(4px);
 }
 
 .tripPlanModalBody {
-  width: min(1000px, 96vw);
-  max-height: 90vh;
+  width: min(1120px, 96vw);
+  max-height: 92vh;
   overflow: auto;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--glass-border);
-  background: var(--surface-1);
-  padding: 16px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(16, 27, 42, 0.98), rgba(13, 23, 37, 0.98));
+  padding: 14px;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.38);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 12px;
 }
 
 .tripPlanModalTop {
   position: sticky;
-  top: -16px;
-  z-index: 2;
-  background: var(--surface-1);
-  border-bottom: 1px solid var(--divider);
-  margin: -16px -16px 0;
-  padding: 14px 16px 12px;
+  top: -14px;
+  z-index: 3;
+  background: rgba(14, 23, 36, 0.96);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 12px 12px 10px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -142,40 +142,86 @@
 .tripPlanModalTitleWrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  min-width: 0;
 }
 
 .tripPlanModalLabel {
   font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
+  color: #96aeca;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .tripPlanModalTitle {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.08;
   color: var(--app-fg);
 }
 
+.tripPlanRouteLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #b8cde8;
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+
+.tripPlanRouteLine i {
+  color: #5ca2ff;
+}
+
+.tripPlanModalMetaStrip {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tripPlanModalMetaStrip span {
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid rgba(111, 157, 212, 0.3);
+  background: rgba(22, 40, 62, 0.66);
+  color: #bdd2f0;
+  font-size: 11px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tripPlanModalMetaStrip i {
+  color: #67afff;
+}
+
 .tripPlanClose {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
   border: 1px solid var(--control-border);
-  background: var(--control-bg);
-  color: var(--app-fg);
+  background: rgba(19, 35, 54, 0.84);
+  color: #d7e8ff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .tripPlanClose:hover {
-  background: var(--hover-bg);
+  background: rgba(33, 54, 81, 0.88);
 }
 
 .tripPlanSection {
+  border: 1px solid var(--glass-border);
+  background: rgba(17, 30, 46, 0.72);
+  border-radius: 10px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -186,92 +232,136 @@
   align-items: center;
   gap: 8px;
   color: var(--app-fg);
+  padding: 0 2px;
 }
 
 .tripPlanSectionHead i {
-  color: #5aa3ff;
+  color: #64abff;
 }
 
 .tripPlanSectionHead h5 {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .tripPlanInfoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 9px;
 }
 
 .tripPlanInfoItem {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  border-radius: 10px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tripPlanInfoItem span {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.tripPlanInfoItem strong {
-  font-size: 14px;
-  color: var(--app-fg);
-}
-
-.tripPlanEntityGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 10px;
-}
-
-.tripPlanEntityCard {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.tripPlanEntityImg {
-  width: 100%;
-  height: 130px;
-  object-fit: cover;
-  background: var(--surface-3);
-}
-
-.tripPlanEntityImgPlaceholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-size: 20px;
-}
-
-.tripPlanEntityBody {
+  border: 1px solid rgba(111, 157, 212, 0.25);
+  background: rgba(21, 38, 59, 0.72);
+  border-radius: 9px;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.tripPlanEntityBody h6 {
-  font-size: 14px;
+.tripPlanInfoLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.tripPlanInfoLabel i {
+  color: #67afff;
+  font-size: 13px;
+}
+
+.tripPlanInfoLabel span {
+  font-size: 11px;
+  color: #a7c0de;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tripPlanInfoItem strong {
+  font-size: 24px;
+  line-height: 1.1;
+  color: #eef5ff;
   font-weight: 700;
 }
 
-.tripPlanEntityBody p {
+.tripPlanEntityGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tripPlanEntityCard {
+  border: 1px solid rgba(111, 157, 212, 0.24);
+  background: rgba(20, 35, 53, 0.76);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: min(320px, 100%);
+  flex: 1 1 260px;
+  max-width: 350px;
+}
+
+.tripPlanEntityMedia {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-bottom: 1px solid rgba(111, 157, 212, 0.2);
+}
+
+.tripPlanEntityImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: var(--surface-3);
+}
+
+.tripPlanEntityImgPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
+  color: #91accb;
+  font-size: 20px;
+  background: linear-gradient(150deg, rgba(36, 57, 84, 0.58), rgba(23, 41, 64, 0.8));
+  padding: 12px;
+}
+
+.tripPlanEntityImgPlaceholder span {
   font-size: 12px;
-  color: var(--text-muted);
-  line-height: 1.45;
+  color: #b4cae4;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.tripPlanEntityBody {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tripPlanEntityBody h6 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.tripPlanEntityBody p {
+  font-size: 13px;
+  color: #aac1dd;
+  line-height: 1.5;
   overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.tripPlanEntityBody p:nth-child(2) {
+  color: #9ec2ee;
 }
 
 .tripPlanEntityTags {
@@ -284,14 +374,14 @@
 .tripPlanEntityTags span {
   height: 24px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-3);
+  border: 1px solid rgba(111, 157, 212, 0.28);
+  background: rgba(26, 45, 68, 0.8);
   padding: 0 8px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 11px;
-  color: var(--text-muted);
+  color: #bfd3ed;
 }
 
 .tripPlanDays {
@@ -301,25 +391,25 @@
 }
 
 .tripPlanDayCard {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  border-radius: 12px;
+  border: 1px solid rgba(111, 157, 212, 0.23);
+  background: rgba(20, 35, 53, 0.76);
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .tripPlanDayHead {
-  background: var(--surface-3);
-  border-bottom: 1px solid var(--border);
-  padding: 10px 12px;
+  background: rgba(27, 46, 70, 0.78);
+  border-bottom: 1px solid rgba(111, 157, 212, 0.22);
+  padding: 10px;
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
 .tripPlanDayBadge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   background: #2f78ee;
   color: #fff;
   font-size: 12px;
@@ -336,13 +426,14 @@
 }
 
 .tripPlanDayTitleWrap h6 {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--app-fg);
+  color: #e8f2ff;
+  line-height: 1.25;
 }
 
 .tripPlanDayMeta {
-  margin-top: 4px;
+  margin-top: 5px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -351,27 +442,27 @@
 .tripPlanDayMeta span {
   height: 24px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(111, 157, 212, 0.28);
   padding: 0 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: var(--text-muted);
-  background: var(--surface-2);
+  color: #bfd3ed;
+  background: rgba(22, 40, 62, 0.76);
 }
 
 .tripPlanActivityList {
-  padding: 8px 10px;
+  padding: 9px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .tripPlanActivityItem {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-1);
+  border: 1px solid rgba(111, 157, 212, 0.22);
+  border-radius: 9px;
+  background: rgba(15, 27, 42, 0.76);
   padding: 10px;
   display: flex;
   gap: 8px;
@@ -396,14 +487,15 @@
 
 .tripPlanActivityBody strong {
   font-size: 13px;
-  color: var(--app-fg);
+  color: #e7f0fd;
 }
 
 .tripPlanActivityBody p {
   font-size: 12px;
-  color: var(--text-muted);
+  color: #a8c0dc;
   line-height: 1.45;
   overflow-wrap: anywhere;
+  margin: 0;
 }
 
 .tripPlanActivityTags {
@@ -413,12 +505,12 @@
 }
 
 .tripPlanActivityTags span {
-  height: 22px;
+  min-height: 22px;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-muted);
-  padding: 0 7px;
+  border: 1px solid rgba(111, 157, 212, 0.22);
+  background: rgba(26, 45, 68, 0.76);
+  color: #bdd2ec;
+  padding: 1px 7px;
   font-size: 11px;
   display: inline-flex;
   align-items: center;
@@ -428,7 +520,21 @@
 .tripPlanEmpty {
   padding: 10px 12px 12px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: #a9c2de;
+}
+
+@media (max-width: 1024px) {
+  .tripPlanModalTitle {
+    font-size: 24px;
+  }
+
+  .tripPlanInfoItem strong {
+    font-size: 20px;
+  }
+
+  .tripPlanEntityBody h6 {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -441,12 +547,30 @@
   }
 
   .tripPlanModalBody {
-    padding: 12px;
+    width: 100%;
+    max-height: 95vh;
+    border-radius: 10px;
+    padding: 10px;
   }
 
   .tripPlanModalTop {
-    top: -12px;
-    margin: -12px -12px 0;
-    padding: 12px;
+    top: -10px;
+    padding: 10px;
+  }
+
+  .tripPlanModalTitle {
+    font-size: 21px;
+  }
+
+  .tripPlanSectionHead h5 {
+    font-size: 16px;
+  }
+
+  .tripPlanInfoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tripPlanInfoItem strong {
+    font-size: 17px;
   }
 }

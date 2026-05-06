@@ -3,6 +3,8 @@ const { generateTravelResponse, generateTripPlanJson } = require("../services/ai
 const { Prisma } = require("@prisma/client");
 const { sanitizeTripPlanPayload, parseBudgetNumber } = require("../utils/tripPlan");
 
+const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
+
 function parseIntParam(value, fallback) {
   const parsed = Number.parseInt(String(value ?? ""), 10);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -13,6 +15,12 @@ function truncateString(value, maxLen) {
   if (!Number.isFinite(maxLen) || maxLen <= 0) return "";
   if (s.length <= maxLen) return s;
   return `${s.slice(0, Math.max(0, maxLen - 20))}\n...[truncated ${s.length - maxLen + 20} chars]`;
+}
+
+function stripInternalGuide(value) {
+  const raw = String(value || "");
+  if (!raw.includes(QUICK_GUIDE_TOKEN)) return raw.trim();
+  return raw.replace(/\s*\[\[ASSISTANT_GUIDE_QUICK_SUGGESTION\]\][\s\S]*$/i, "").trim();
 }
 
 async function createMessageSafe(data) {
@@ -159,7 +167,8 @@ exports.listMessages = async (req, res) => {
 
 exports.ask = async (req, res) => {
   const userId = req.user.id;
-  const message = (req.body?.message || "").toString().trim();
+  const message = stripInternalGuide((req.body?.message || "").toString());
+  const guide = (req.body?.guide || "").toString().trim().toLowerCase();
   const requestedChatId = req.body?.chatId;
   const title = (req.body?.title || "").toString().trim();
 
@@ -199,10 +208,12 @@ exports.ask = async (req, res) => {
 
   const messages = history.map((m) => ({
     role: m.role.toLowerCase(), // USER -> user, ASSISTANT -> assistant
-    content: m.content,
+    content: stripInternalGuide(m.content),
   }));
 
-  const { reply: aiReply, tokens, trip_plan: tripPlan, resp } = await generateTravelResponse(messages);
+  const { reply: aiReply, tokens, trip_plan: tripPlan, resp } = await generateTravelResponse(messages, {
+    guide,
+  });
 
   const assistantContent =
     tripPlan && typeof tripPlan === "object"

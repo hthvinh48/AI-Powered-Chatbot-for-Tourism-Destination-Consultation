@@ -1,11 +1,23 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/react";
 import { apiRequest } from "./apiClient";
-import { clearBackendAuth, getBackendAuth, setBackendAuth } from "./backendAuth";
+import {
+  BACKEND_AUTH_CHANGED_EVENT,
+  clearBackendAuth,
+  getBackendAuth,
+  setBackendAuth,
+} from "./backendAuth";
 
 export function useBackendAuthSync() {
   const { isLoaded, userId, getToken } = useAuth();
   const [state, setState] = useState({ syncing: false, error: "" });
+  const [authVersion, setAuthVersion] = useState(0);
+
+  useEffect(() => {
+    const onAuthChanged = () => setAuthVersion((v) => v + 1);
+    window.addEventListener(BACKEND_AUTH_CHANGED_EVENT, onAuthChanged);
+    return () => window.removeEventListener(BACKEND_AUTH_CHANGED_EVENT, onAuthChanged);
+  }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -52,8 +64,7 @@ export function useBackendAuthSync() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, userId, getToken]);
+  }, [isLoaded, userId, getToken, authVersion]);
 
   return state;
 }
-

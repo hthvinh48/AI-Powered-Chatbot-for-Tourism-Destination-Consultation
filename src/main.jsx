@@ -17,6 +17,8 @@ import AdminOverviewPage from './routes/admin/AdminOverviewPage.jsx'
 import AdminTripMapPage from './routes/admin/AdminTripMapPage.jsx'
 import AdminUsersPage from './routes/admin/AdminUsersPage.jsx'
 import AdminTokensPage from './routes/admin/AdminTokensPage.jsx'
+import ExplorePage from './routes/explorePage/ExplorePage.jsx'
+import ContactPage from './routes/contactPage/ContactPage.jsx'
 import UnderDevelopmentPage from './routes/underDevelopment/UnderDevelopmentPage.jsx'
 import NotFoundPage from './routes/notFound/NotFoundPage.jsx'
 
@@ -37,14 +39,6 @@ const router = createBrowserRouter([
         element: <SignUpPage />,
       },
       {
-        path: "/explore",
-        element: <UnderDevelopmentPage />,
-      },
-      {
-        path: "/contact",
-        element: <UnderDevelopmentPage />,
-      },
-      {
         path: "/terms",
         element: <UnderDevelopmentPage />,
       },
@@ -58,6 +52,14 @@ const router = createBrowserRouter([
           {
             path: "/dashboard",
             element: <DashboardPage />,
+          },
+          {
+            path: "/explore",
+            element: <ExplorePage />,
+          },
+          {
+            path: "/contact",
+            element: <ContactPage />,
           },
           {
             path: "/dashboard/chats/:id",

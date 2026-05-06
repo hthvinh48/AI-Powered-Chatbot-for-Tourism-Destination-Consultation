@@ -10,9 +10,13 @@
   border: 1px solid var(--control-border);
   background: var(--surface-2);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
   padding: 8px;
+}
+
+.newForm.is-pending {
+  border-color: var(--accent-hover-border);
 }
 
 .newForm textarea {
@@ -24,7 +28,7 @@
   outline: none;
   background: var(--surface-3);
   color: var(--app-fg);
-  resize: vertical;
+  resize: none;
   padding: 10px 12px;
 }
 
@@ -34,6 +38,10 @@
 
 .newForm textarea:focus {
   border-color: var(--accent-hover-border);
+}
+
+.newForm textarea[readonly] {
+  opacity: 0.9;
 }
 
 .newForm button {
@@ -57,4 +65,24 @@
 .newForm button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.newFormSpinner {
+  animation: newPromptSpin 0.7s linear infinite;
+}
+
+.newPromptStatus {
+  margin-top: 8px;
+  padding-left: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@keyframes newPromptSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

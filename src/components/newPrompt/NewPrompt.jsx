@@ -1,8 +1,33 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import './newPrompt.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
 import { useI18n } from '../../lib/useI18n'
+import { looksLikeTripPlan } from '../../lib/tolerantJson'
+import { buildSmartAskPayload } from '../../lib/promptIntent'
+
+function normalizeFieldKey(raw) {
+  return String(raw || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+function mapPlanFieldKey(rawKey) {
+  const key = normalizeFieldKey(rawKey)
+  if (!key) return ''
+
+  if (['origin', 'departure', 'diemxuatphat', 'diemkhoihanh', 'khoihanh', 'xuatphat'].includes(key)) return 'origin'
+  if (['destination', 'diemden', 'den', 'noiden'].includes(key)) return 'destination'
+  if (['duration', 'songay', 'thoiluong'].includes(key)) return 'duration'
+  if (['budget', 'ngansach', 'chiphi'].includes(key)) return 'budget'
+  if (['groupsize', 'group', 'songuoi', 'soluongnguoi', 'nhom'].includes(key)) return 'group_size'
+  if (['interests', 'sothich', 'yeuthich'].includes(key)) return 'interests'
+  if (['preferences', 'yeucaudacbiet', 'ghichu', 'note'].includes(key)) return 'preferences'
+
+  return key
+}
 
 function parsePlanInput(text) {
   const lines = String(text || '')
@@ -12,9 +37,11 @@ function parsePlanInput(text) {
 
   const data = {}
   for (const line of lines) {
-    const m = line.match(/^([a-zA-Z_]+)\s*[:=]\s*(.+)$/)
+    const m = line.match(/^([^:=]+)\s*[:=]\s*(.+)$/)
     if (!m) continue
-    data[m[1].toLowerCase()] = m[2].trim()
+    const canonicalKey = mapPlanFieldKey(m[1])
+    if (!canonicalKey) continue
+    data[canonicalKey] = m[2].trim()
   }
 
   if (!data.origin || !data.destination || !data.duration) return null
@@ -32,20 +59,34 @@ function parsePlanInput(text) {
 
 const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
   const notify = useNotify()
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const [text, setText] = useState('')
   const [pending, setPending] = useState(false)
+  const textareaRef = useRef(null)
+  const submittingRef = useRef(false)
   const planInput = useMemo(() => parsePlanInput(text), [text])
+
+  const focusTextarea = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const el = textareaRef.current
+      if (!el) return
+      el.focus()
+      const pos = el.value.length
+      el.setSelectionRange(pos, pos)
+    })
+  }, [])
 
   const submit = async (e) => {
     e.preventDefault()
-    if (pending) return
+    if (pending || submittingRef.current) return
     const msg = text.trim()
     if (!msg) return
     if (!Number.isFinite(chatId)) {
       notify.error(t('prompt.invalid_chat'))
       return
     }
+
+    submittingRef.current = true
 
     const optimisticUser = {
       id: `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -56,6 +97,7 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
     }
     onNewMessages?.([optimisticUser])
     setText('')
+    focusTextarea()
 
     setPending(true)
     onPendingChange?.(true)
@@ -74,11 +116,12 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
         const assistant = msgs.find((m) => String(m?.role || '').toLowerCase() === 'assistant')
         if (assistant) onNewMessages?.([{ ...assistant, content: wrapper }])
       } else {
+        const smartPayload = buildSmartAskPayload(msg, lang)
         const res = await apiRequestBackend('/api/chat/ask', {
           method: 'POST',
-          body: { chatId, message: msg },
+          body: { chatId, ...smartPayload },
         })
-        if (res?.trip_plan) {
+        if (res?.trip_plan && looksLikeTripPlan(res.trip_plan)) {
           const wrapper = JSON.stringify({
             resp: res?.resp || res?.reply || '',
             trip_plan: res?.trip_plan || null,
@@ -96,15 +139,27 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
       notify.error(err?.message || t('prompt.request_failed'))
       setText(msg)
     } finally {
+      submittingRef.current = false
       setPending(false)
       onPendingChange?.(false)
+      focusTextarea()
     }
+  }
+
+  const handleTextareaKeyDown = (e) => {
+    if (e.key !== 'Enter') return
+    if (e.shiftKey) return
+    if (e.nativeEvent?.isComposing) return
+    e.preventDefault()
+    if (pending || submittingRef.current) return
+    e.currentTarget.form?.requestSubmit()
   }
 
   return (
     <div className="newPrompt">
-      <form className="newForm" onSubmit={submit}>
+      <form className={`newForm ${pending ? 'is-pending' : ''}`} onSubmit={submit} aria-busy={pending}>
         <textarea
+          ref={textareaRef}
           name="text"
           placeholder={
             planInput
@@ -113,13 +168,20 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
           }
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleTextareaKeyDown}
           rows={2}
-          disabled={pending}
+          readOnly={pending}
         />
-        <button disabled={pending} aria-label={pending ? t('prompt.sending') : t('prompt.send')}>
-          <i className="ti ti-arrow-up" />
+        <button
+          type="submit"
+          disabled={pending || !text.trim()}
+          aria-label={pending ? t('prompt.sending') : t('prompt.send')}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <i className={`ti ${pending ? 'ti-loader-2 newFormSpinner' : 'ti-arrow-up'}`} />
         </button>
       </form>
+      {pending ? <div className="newPromptStatus">{t('prompt.sending')}</div> : null}
     </div>
   )
 }

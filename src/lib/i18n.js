@@ -229,6 +229,8 @@ const DICT = {
     'trip.trip_fallback': 'Trip',
 
     'common.error': 'Error',
+    'common.confirm': 'Confirm',
+    'common.cancel': 'Cancel',
     'common.close': 'Close',
     'common.loading': 'Loading...',
     'common.syncing': 'Syncing session...',
