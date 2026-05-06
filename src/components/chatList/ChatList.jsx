@@ -17,6 +17,9 @@ const ChatList = () => {
   const canSeeAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
 
   const [items, setItems] = useState([])
+  const [totalChats, setTotalChats] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loadingChats, setLoadingChats] = useState(false)
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [jsonText, setJsonText] = useState('')
   const [savedOpen, setSavedOpen] = useState(false)
@@ -27,9 +30,18 @@ const ChatList = () => {
   const { id } = useParams()
   const activeChatId = Number(id)
 
-  const load = async () => {
-    const res = await apiRequestBackend('/api/chat')
-    setItems(res?.items || [])
+  const LIMIT = 12
+  const load = async (nextPage = 1, mode = 'replace') => {
+    setLoadingChats(true)
+    try {
+      const res = await apiRequestBackend(`/api/chat?page=${nextPage}&limit=${LIMIT}`)
+      const newItems = Array.isArray(res?.items) ? res.items : []
+      setTotalChats(Number(res?.total) || 0)
+      setPage(Number(res?.page) || nextPage)
+      setItems((prev) => (mode === 'append' ? [...prev, ...newItems] : newItems))
+    } finally {
+      setLoadingChats(false)
+    }
   }
 
   const loadSaved = async () => {
@@ -67,7 +79,7 @@ const ChatList = () => {
 
   useEffect(() => {
     let active = true
-    load().catch(() => {
+    load(1, 'replace').catch(() => {
       if (!active) return
       setItems([])
     })
@@ -89,7 +101,7 @@ const ChatList = () => {
     if (!ok) return
     try {
       await apiRequestBackend(`/api/chat/${chatId}`, { method: 'DELETE' })
-      await load()
+      await load(1, 'replace')
       if (location.pathname === `/dashboard/chats/${chatId}`) {
         navigate('/dashboard')
       }
@@ -154,6 +166,16 @@ const ChatList = () => {
                 </button>
               </div>
             ))}
+            {loadingChats ? <div className="chatListHint">{t('chat.loading')}</div> : null}
+            {!loadingChats && items.length < totalChats ? (
+              <button
+                type="button"
+                className="chatListLoadMore"
+                onClick={() => load(page + 1, 'append')}
+              >
+                {t('chat.load_more')}
+              </button>
+            ) : null}
           </div>
         </div>
 

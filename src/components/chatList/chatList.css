@@ -69,6 +69,26 @@
   gap: 4px;
 }
 
+.chatListHint {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.chatListLoadMore {
+  margin: 6px 10px 0;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  cursor: pointer;
+}
+
+.chatListLoadMore:hover {
+  background: var(--hover-bg);
+}
+
 .chatListRow {
   min-height: 36px;
   border-radius: 8px;

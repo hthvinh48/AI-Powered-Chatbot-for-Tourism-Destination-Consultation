@@ -67,6 +67,23 @@ function formatMoneyLike(value, lang) {
   return raw.replace(match[1], formatted)
 }
 
+function isPureNumberString(value) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return false
+  return /^\d+$/.test(raw)
+}
+
+function formatMoneyWithCurrency(value, currency, lang) {
+  const raw = String(value ?? '').trim()
+  if (!raw) return ''
+
+  const formatted = formatMoneyLike(raw, lang)
+  if (!isPureNumberString(raw)) return formatted
+
+  const cur = String(currency || '').trim()
+  return cur ? `${formatted} ${cur}` : formatted
+}
+
 function safeUrl(value) {
   const url = String(value || '').trim()
   if (!url) return ''
@@ -234,7 +251,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                 {tripPlan.total_estimated_cost ? (
                   <div className="tripPlanInfoItem">
                     <span>{t('trip.field.total')}</span>
-                    <strong>{formatMoneyLike(tripPlan.total_estimated_cost, lang)}</strong>
+                    <strong>{formatMoneyWithCurrency(tripPlan.total_estimated_cost, tripPlan.currency, lang)}</strong>
                   </div>
                 ) : null}
                 {tripPlan.group_size ? (
@@ -272,7 +289,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                             {hotel.price_per_night ? (
                               <span>
                                 <i className="ti ti-cash" />
-                                {formatMoneyLike(hotel.price_per_night, lang)}
+                                {formatMoneyWithCurrency(hotel.price_per_night, tripPlan.currency, lang)}
                               </span>
                             ) : null}
                             {hotel.rating != null ? (
@@ -316,7 +333,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                             {place.ticket_pricing ? (
                               <span>
                                 <i className="ti ti-ticket" />
-                                {formatMoneyLike(place.ticket_pricing, lang)}
+                                {formatMoneyWithCurrency(place.ticket_pricing, tripPlan.currency, lang)}
                               </span>
                             ) : null}
                             {place.best_time_to_visit ? (
@@ -342,6 +359,10 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
               <div className="tripPlanDays">
                 {itinerary.map((day, idx) => {
                   const activities = Array.isArray(day.activities) ? day.activities : []
+                  const bestTimeForDay =
+                    day.best_time_to_visit_day ||
+                    (activities.find((a) => a && typeof a.best_time_to_visit === 'string' && a.best_time_to_visit.trim())
+                      ?.best_time_to_visit || '')
                   return (
                     <article key={`day-${day.day || idx}`} className="tripPlanDayCard">
                       <header className="tripPlanDayHead">
@@ -349,16 +370,16 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                         <div className="tripPlanDayTitleWrap">
                           <h6>{day.day_plan || `${t('trip.meta.days')} ${day.day || idx + 1}`}</h6>
                           <div className="tripPlanDayMeta">
-                            {day.best_time_to_visit_day ? (
+                            {bestTimeForDay ? (
                               <span>
                                 <i className="ti ti-clock-hour-4" />
-                                {day.best_time_to_visit_day}
+                                {bestTimeForDay}
                               </span>
                             ) : null}
                             {day.estimated_cost ? (
                               <span>
                                 <i className="ti ti-cash" />
-                                {formatMoneyLike(day.estimated_cost, lang)}
+                                {formatMoneyWithCurrency(day.estimated_cost, tripPlan.currency, lang)}
                               </span>
                             ) : null}
                           </div>
@@ -383,13 +404,19 @@ const TripPlanMessage = ({ chatId, content, allowSave = true }) => {
                                   {activity.ticket_pricing ? (
                                     <span>
                                       <i className="ti ti-ticket" />
-                                      {formatMoneyLike(activity.ticket_pricing, lang)}
+                                      {formatMoneyWithCurrency(activity.ticket_pricing, tripPlan.currency, lang)}
                                     </span>
                                   ) : null}
                                   {activity.time_travel_each_location ? (
                                     <span>
                                       <i className="ti ti-route" />
                                       {activity.time_travel_each_location}
+                                    </span>
+                                  ) : null}
+                                  {activity.best_time_to_visit ? (
+                                    <span>
+                                      <i className="ti ti-sun" />
+                                      {activity.best_time_to_visit}
                                     </span>
                                   ) : null}
                                 </div>

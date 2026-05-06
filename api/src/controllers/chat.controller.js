@@ -48,18 +48,27 @@ async function requireChatOwnedByUser(chatId, userId) {
 exports.listChats = async (req, res) => {
   const userId = req.user.id;
 
-  const chats = await prisma.chat.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      createdAt: true,
-      _count: { select: { messages: true } },
-    },
-  });
+  const limit = Math.min(50, Math.max(1, parseIntParam(req.query.limit, 20)));
+  const page = Math.max(1, parseIntParam(req.query.page, 1));
+  const skip = (page - 1) * limit;
 
-  res.json({ total: chats.length, items: chats });
+  const [total, chats] = await prisma.$transaction([
+    prisma.chat.count({ where: { userId } }),
+    prisma.chat.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        _count: { select: { messages: true } },
+      },
+    }),
+  ]);
+
+  res.json({ total, page, limit, items: chats });
 };
 
 exports.createChat = async (req, res) => {
