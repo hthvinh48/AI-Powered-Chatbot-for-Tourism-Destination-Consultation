@@ -168,92 +168,6 @@ const AdminBillingPage = () => {
 
       <div className="admin-card admin-card--padded" style={{ marginTop: 12 }}>
         <div className="admin-card-head">
-          <h3>{t('admin.billing.monthly_title')}</h3>
-        </div>
-
-        <div className="admin-filters">
-          <label className="admin-label">
-            {t('admin.billing.month')}
-            <input className="admin-input" type="month" value={month} onChange={(e) => { setMonth(e.target.value); setPage(1) }} />
-          </label>
-          <label className="admin-label">
-            {t('admin.search')}
-            <input className="admin-input" value={q} onChange={(e) => { setQ(e.target.value); setPage(1) }} placeholder={t('admin.search_placeholder')} />
-          </label>
-          <label className="admin-label">
-            {t('admin.sort_by')}
-            <select className="admin-input" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="used">{t('admin.billing.col.used')}</option>
-              <option value="purchased">{t('admin.billing.col.purchased')}</option>
-              <option value="remaining">{t('admin.billing.col.remaining')}</option>
-              <option value="email">{t('admin.sort.email')}</option>
-              <option value="username">{t('admin.sort.username')}</option>
-            </select>
-          </label>
-          <label className="admin-label">
-            {t('admin.sort_dir')}
-            <select className="admin-input" value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
-              <option value="desc">{t('admin.desc')}</option>
-              <option value="asc">{t('admin.asc')}</option>
-            </select>
-          </label>
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={load}>
-            {t('admin.refresh')}
-          </button>
-        </div>
-
-        {error ? <div className="admin-error">{error}</div> : null}
-
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>{t('admin.table.email')}</th>
-                <th>{t('admin.table.username')}</th>
-                <th>{t('admin.billing.col.free')}</th>
-                <th>{t('admin.billing.col.purchased')}</th>
-                <th>{t('admin.billing.col.used')}</th>
-                <th>{t('admin.billing.col.remaining')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="admin-empty">{t('trip.loading')}</td>
-                </tr>
-              ) : null}
-              {!loading && items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="admin-empty">{t('admin.no_data')}</td>
-                </tr>
-              ) : null}
-              {items.map((x) => (
-                <tr key={x.userId}>
-                  <td>{x.email}</td>
-                  <td>{x.username}</td>
-                  <td>{formatNumber(x.freeTokens, lang)}</td>
-                  <td>{formatNumber(x.purchasedTokens, lang)}</td>
-                  <td>{formatNumber(x.usedTokens, lang)}</td>
-                  <td>{formatNumber(x.remainingTokens, lang)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="admin-pager">
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-            <i className="ti ti-chevron-left" /> {t('chat.prev_page')}
-          </button>
-          <div className="admin-pager-text">{t('chat.page')} {page}/{maxPages}</div>
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={() => setPage((p) => Math.min(maxPages, p + 1))} disabled={page >= maxPages}>
-            {t('chat.next_page')} <i className="ti ti-chevron-right" />
-          </button>
-        </div>
-      </div>
-
-      <div className="admin-card admin-card--padded" style={{ marginTop: 12 }}>
-        <div className="admin-card-head">
           <h3>{t('billing.invoices')}</h3>
         </div>
 
@@ -293,9 +207,10 @@ const AdminBillingPage = () => {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>{t('billing.col.invoice')}</th>
                 <th>{t('admin.table.email')}</th>
-                <th>{t('billing.col.tokens')}</th>
+                <th>{t('billing.col.transactionNo')}</th>
+                <th>{t('billing.col.invoiceNo')}</th>
+                <th>{t('billing.col.description')}</th>
                 <th>{t('billing.col.amount')}</th>
                 <th>{t('billing.col.status')}</th>
                 <th>{t('billing.col.date')}</th>
@@ -314,8 +229,10 @@ const AdminBillingPage = () => {
               ) : null}
               {invoiceItems.map((inv) => (
                 <tr key={inv.id}>
-                  <td>{inv.number}</td>
                   <td>{inv.user?.email || '-'}</td>
+                  <td>{inv.transactionNo || '-'}</td>
+                  <td>{inv.invoiceNo || '-'}</td>
+                  <td>{inv.description || '-'}</td>
                   <td>{formatNumber(inv.tokens, lang)}</td>
                   <td>{inv.amount != null ? formatMoney(inv.amount, inv.currency, lang) : '-'}</td>
                   <td>{inv.status || '-'}</td>

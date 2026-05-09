@@ -1,3 +1,4 @@
+const { log } = require("node:console");
 const prisma = require("../lib/prisma");
 const vnpayService = require("../services/Vnpay.service");
 
@@ -179,13 +180,13 @@ exports.createMembership = async (req, res) => {
 
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, "0");
-    const number = `INV-${y}${m}-${membership.id}`;
+    const description = `INV-${y}${m}-MEM-${membership.id}`;
 
     const invoice = await tx.invoice.create({
       data: {
         userId,
         membershipId: membership.id,
-        number,
+        description,
         status: "PAID",
         amount: membership.amount,
         currency: membership.currency,
@@ -194,7 +195,7 @@ exports.createMembership = async (req, res) => {
         note: membership.note,
         issuedAt: now,
       },
-      select: { id: true, number: true },
+      select: { id: true, description: true },
     });
 
     return { membership, invoice };
@@ -259,13 +260,13 @@ exports.createMembershipVnpay = async (req, res) => {
 
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, "0");
-    const number = `INV-${y}${m}-${membership.id}`;
+    const description = `INV-${y}${m}-MEM-${membership.id}-${Date.now()}`;
 
     const invoice = await tx.invoice.create({
       data: {
         userId,
         membershipId: membership.id,
-        number,
+        description,
         status: "PENDING",
         amount: membership.amount,
         currency: membership.currency,
@@ -274,14 +275,17 @@ exports.createMembershipVnpay = async (req, res) => {
         note: membership.note,
         issuedAt: now,
       },
-      select: { id: true, number: true },
+      select: { id: true, description: true },
     });
 
     return { membership, invoice };
   });
 
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
-  const returnUrl = `${baseUrl}/api/billing/membership/vnpay/return`;
+  const publicApiBase =
+    process.env.PUBLIC_API_URL ||
+    process.env.VNP_RETURNURL ||
+    "http://localhost:5173";
+  const returnUrl = `${publicApiBase}/api/billing/membership/vnpay/return`;
   const paymentUrl = vnpayService.createPaymentUrl({
     amount: amountVnd,
     orderInfo: `Membership monthly - user:${userId} - mid:${created.membership.id}`,
@@ -298,12 +302,26 @@ exports.createMembershipVnpay = async (req, res) => {
 };
 
 exports.handleMembershipVnpayReturn = async (req, res) => {
+  const wantsJson =
+    String(req.query?.format || "").toLowerCase() === "json" ||
+    String(req.query?.json || "") === "1" ||
+    String(req.headers.accept || "").includes("application/json");
+
   const ok = vnpayService.verifyReturnUrl(req.query || {});
   const code = String(req.query?.vnp_ResponseCode || "");
   const txnRef = String(req.query?.vnp_TxnRef || "");
+  const transactionNo = String(req.query?.vnp_BankTranNo || "");
 
-  const frontend = process.env.FRONTEND_URL || "http://localhost:5173";
+  const frontend = process.env.VNP_RETURNURL || "http://localhost:5173";
   if (!ok || !txnRef) {
+    if (wantsJson) {
+      return res.status(400).json({
+        ok: false,
+        error: "INVALID_SIGNATURE_OR_TXNREF",
+        responseCode: code || null,
+        txnRef: txnRef || null,
+      });
+    }
     return res.redirect(`${frontend}/billing?pay=fail`);
   }
 
@@ -311,7 +329,17 @@ exports.handleMembershipVnpayReturn = async (req, res) => {
     where: { paymentRef: txnRef },
     select: { id: true, userId: true, status: true },
   });
-  if (!membership) return res.redirect(`${frontend}/billing?pay=fail`);
+  if (!membership) {
+    if (wantsJson) {
+      return res.status(404).json({
+        ok: false,
+        error: "MEMBERSHIP_NOT_FOUND",
+        responseCode: code || null,
+        txnRef,
+      });
+    }
+    return res.redirect(`${frontend}/billing?pay=fail`);
+  }
 
   if (code === "00") {
     await prisma.$transaction([
@@ -321,9 +349,22 @@ exports.handleMembershipVnpayReturn = async (req, res) => {
       }),
       prisma.invoice.updateMany({
         where: { membershipId: membership.id },
-        data: { status: "PAID" },
+        data: {
+          transactionNo: transactionNo,
+          invoiceNo: txnRef,
+          status: "PAID",
+        },
       }),
     ]);
+    if (wantsJson) {
+      return res.json({
+        ok: true,
+        responseCode: code,
+        txnRef,
+        membershipId: membership.id,
+        invoiceStatus: "PAID",
+      });
+    }
     return res.redirect(`${frontend}/billing?pay=success`);
   }
 
@@ -337,6 +378,15 @@ exports.handleMembershipVnpayReturn = async (req, res) => {
       data: { status: "FAILED" },
     }),
   ]);
+  if (wantsJson) {
+    return res.status(400).json({
+      ok: false,
+      responseCode: code || null,
+      txnRef,
+      membershipId: membership.id,
+      invoiceStatus: "FAILED",
+    });
+  }
   return res.redirect(`${frontend}/billing?pay=fail`);
 };
 
@@ -386,13 +436,13 @@ exports.createPurchase = async (req, res) => {
 
     const y = new Date().getFullYear();
     const m = String(new Date().getMonth() + 1).padStart(2, "0");
-    const number = `INV-${y}${m}-${purchase.id}`;
+    const description = `INV-${y}${m}-TOK-${purchase.id}`;
 
     const invoice = await tx.invoice.create({
       data: {
         userId,
         tokenPurchaseId: purchase.id,
-        number,
+        description,
         status: purchase.status,
         amount: purchase.amount,
         currency: purchase.currency,
@@ -400,13 +450,13 @@ exports.createPurchase = async (req, res) => {
         provider: purchase.provider,
         note: purchase.note,
       },
-      select: { id: true, number: true },
+      select: { id: true, description: true },
     });
 
     return {
       ...purchase,
       invoiceId: invoice.id,
-      invoiceNumber: invoice.number,
+      invoiceNumber: invoice.description,
     };
   });
 
@@ -446,7 +496,9 @@ exports.listInvoices = async (req, res) => {
       take: limit,
       select: {
         id: true,
-        number: true,
+        transactionNo: true,
+        invoiceNo: true,
+        description: true,
         status: true,
         tokens: true,
         amount: true,
@@ -473,7 +525,9 @@ exports.getInvoice = async (req, res) => {
     select: {
       id: true,
       userId: true,
-      number: true,
+      transactionNo: true,
+      invoiceNo: true,
+      description: true,
       status: true,
       tokens: true,
       amount: true,

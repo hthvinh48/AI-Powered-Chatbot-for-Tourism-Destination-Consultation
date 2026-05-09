@@ -40,11 +40,12 @@ class VnpayService {
 
     // Tạo chữ ký
     const signData = qs.stringify(vnp_Params, { encode: false });
-    const hmac = crypto.createHmac("sha512", this.hashSecret);
-    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+    const signed = crypto
+      .createHmac("sha512", this.hashSecret)
+      .update(Buffer.from(signData, "utf-8"))
+      .digest("hex");
     vnp_Params["vnp_SecureHash"] = signed;
-
-    return this.vnpUrl + "?" + qs.stringify(vnp_Params, { encode: true });
+    return this.vnpUrl + "?" + qs.stringify(vnp_Params, { encode: false });
   }
 
   // Hàm verify kết quả trả về
@@ -68,7 +69,7 @@ class VnpayService {
     const sorted = {};
     const keys = Object.keys(obj).sort();
     keys.forEach((key) => {
-      sorted[key] = obj[key];
+      sorted[key] = encodeURIComponent(obj[key]).replace(/%20/g, "+");
     });
     return sorted;
   }

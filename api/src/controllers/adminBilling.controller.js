@@ -1,6 +1,11 @@
 const prisma = require("../lib/prisma");
 const { Prisma } = require("@prisma/client");
-const { getFreeTokensPerMonth, setFreeTokensPerMonth, startOfMonth, nextMonth } = require("../utils/billing");
+const {
+  getFreeTokensPerMonth,
+  setFreeTokensPerMonth,
+  startOfMonth,
+  nextMonth,
+} = require("../utils/billing");
 
 function parseIntParam(value, fallback) {
   const parsed = Number.parseInt(String(value ?? ""), 10);
@@ -37,7 +42,8 @@ exports.getFreeTokensSetting = async (req, res) => {
 
 exports.updateFreeTokensSetting = async (req, res) => {
   const value = parseIntParam(req.body?.freeTokensPerMonth, NaN);
-  if (!Number.isFinite(value) || value < 0) return res.status(400).json({ message: "Invalid freeTokensPerMonth" });
+  if (!Number.isFinite(value) || value < 0)
+    return res.status(400).json({ message: "Invalid freeTokensPerMonth" });
   const updated = await setFreeTokensPerMonth(value);
   res.json({ freeTokensPerMonth: updated });
 };
@@ -56,9 +62,17 @@ exports.monthlyUserTokenStats = async (req, res) => {
   const skip = (page - 1) * limit;
 
   const like = `%${q}%`;
-  const whereSql = q ? Prisma.sql`WHERE u.email LIKE ${like} OR u.name LIKE ${like}` : Prisma.sql``;
+  const whereSql = q
+    ? Prisma.sql`WHERE u.email LIKE ${like} OR u.name LIKE ${like}`
+    : Prisma.sql``;
 
-  const allowedSortBy = new Set(["used", "purchased", "remaining", "email", "username"]);
+  const allowedSortBy = new Set([
+    "used",
+    "purchased",
+    "remaining",
+    "email",
+    "username",
+  ]);
   const finalSortBy = allowedSortBy.has(sortBy) ? sortBy : "used";
 
   const freePerMonth = await getFreeTokensPerMonth();
@@ -170,7 +184,9 @@ exports.listInvoices = async (req, res) => {
       take: limit,
       select: {
         id: true,
-        number: true,
+        transactionNo: true,
+        invoiceNo: true,
+        description: true,
         status: true,
         tokens: true,
         amount: true,
@@ -182,5 +198,11 @@ exports.listInvoices = async (req, res) => {
     }),
   ]);
 
-  res.json({ total, page, limit, items, month: from.toISOString().slice(0, 7) });
+  res.json({
+    total,
+    page,
+    limit,
+    items,
+    month: from.toISOString().slice(0, 7),
+  });
 };
