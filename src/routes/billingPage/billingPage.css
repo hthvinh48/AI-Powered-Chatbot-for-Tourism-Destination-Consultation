@@ -1,0 +1,288 @@
+.billingPage {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface-2);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.billingHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.billingHeader h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.billingHeader p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.billingBtn {
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  padding: 0 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.billingBtnPrimary {
+  border-color: rgba(47, 120, 238, 0.38);
+  background: rgba(47, 120, 238, 0.16);
+}
+
+.billingBadge {
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--app-fg);
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.billingBtn:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.billingBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.billingGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.billingCard {
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--surface-1);
+  padding: 12px;
+}
+
+.billingLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.billingValue {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.billingValueSmall {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.billingSection {
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--surface-1);
+  padding: 12px;
+  overflow: hidden;
+}
+
+.billingSectionTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.billingSectionTop h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.billingPager {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.billingPagerBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.billingPagerBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.billingPagerBtn:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+.billingPagerText {
+  font-size: 12px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.billingTableWrap {
+  margin-top: 10px;
+  overflow: auto;
+}
+
+.billingTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.billingTable th,
+.billingTable td {
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--divider);
+  text-align: left;
+  vertical-align: top;
+}
+
+.billingTable th {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.billingEmpty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 18px 10px;
+}
+
+.billingActions {
+  text-align: right;
+}
+
+.billingIconBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--control-bg);
+  color: var(--app-fg);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.billingIconBtn:hover {
+  background: var(--hover-bg);
+}
+
+.billingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.56);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 70;
+}
+
+.billingModal {
+  width: min(720px, 96vw);
+  max-height: 88vh;
+  overflow: auto;
+  background: var(--surface-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.billingModalTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.billingModalTitle {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.billingForm {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.billingForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.billingForm input {
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--control-border);
+  background: var(--surface-3);
+  color: var(--app-fg);
+  padding: 0 10px;
+  outline: none;
+}
+
+.billingModalActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.billingInvoiceGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .billingGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .billingForm {
+    grid-template-columns: 1fr;
+  }
+}

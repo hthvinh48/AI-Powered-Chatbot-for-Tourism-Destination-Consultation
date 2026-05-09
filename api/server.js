@@ -35,6 +35,10 @@ app.use("/api/admin", adminRoutes);
 const tripPlanRoutes = require("./src/routes/tripPlan.routes");
 app.use("/api/trip-plans", tripPlanRoutes);
 
+// Billing
+const billingRoutes = require("./src/routes/billing.routes");
+app.use("/api/billing", billingRoutes);
+
 // Health check (for frontend)
 app.get("/api/health", (req, res) => {
   res.json({ ok: true, service: "api" });

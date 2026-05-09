@@ -35,6 +35,7 @@ const AdminLayout = () => {
     if (location.pathname.startsWith('/admin/map')) return t('admin.map.nav')
     if (location.pathname.startsWith('/admin/users')) return t('admin.users')
     if (location.pathname.startsWith('/admin/tokens')) return t('admin.tokens')
+    if (location.pathname.startsWith('/admin/billing')) return t('admin.billing.title')
     if (location.pathname.startsWith('/dashboard')) return t('admin.back')
     if (location.pathname.startsWith('/admin')) return t('admin.overview')
     return location.pathname
@@ -122,6 +123,16 @@ const AdminLayout = () => {
           >
             <i className="ti ti-coins" />
             {!collapsed ? <span>{t('admin.tokens')}</span> : null}
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
+            to="/admin/billing"
+            onClick={() => setMobileOpen(false)}
+            title={t('admin.billing.title')}
+          >
+            <i className="ti ti-credit-card" />
+            {!collapsed ? <span>{t('admin.billing.title')}</span> : null}
           </NavLink>
 
           <div className="admin-sidebar-divider" />

@@ -2,6 +2,7 @@ const prisma = require("../lib/prisma");
 const { generateTravelResponse, generateTripPlanJson } = require("../services/ai.service");
 const { Prisma } = require("@prisma/client");
 const { sanitizeTripPlanPayload, parseBudgetNumber } = require("../utils/tripPlan");
+const { getUserTokenLedger } = require("../utils/billing");
 
 const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
 
@@ -174,6 +175,16 @@ exports.ask = async (req, res) => {
 
   if (!message) return res.status(400).json({ message: "Missing fields" });
 
+  // Quota check (monthly): free tokens + purchased tokens - used tokens.
+  const ledger = await getUserTokenLedger(userId, new Date());
+  if (ledger.remainingTokens <= 0) {
+    return res.status(402).json({
+      message: "Token quota exceeded for this month",
+      code: "TOKEN_QUOTA_EXCEEDED",
+      ledger,
+    });
+  }
+
   let chatId = null;
 
   if (requestedChatId !== undefined && requestedChatId !== null && requestedChatId !== "") {
@@ -301,6 +312,15 @@ exports.generateTripPlan = async (req, res) => {
 
   if (!origin || !destination || !duration) {
     return res.status(400).json({ message: "Missing fields (origin, destination, duration)" });
+  }
+
+  const ledger = await getUserTokenLedger(userId, new Date());
+  if (ledger.remainingTokens <= 0) {
+    return res.status(402).json({
+      message: "Token quota exceeded for this month",
+      code: "TOKEN_QUOTA_EXCEEDED",
+      ledger,
+    });
   }
 
   const userInputSummary = JSON.stringify(

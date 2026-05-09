@@ -22,6 +22,13 @@ router.post("/users/:id/unban", asyncHandle(adminController.unbanUser));
 router.get("/stats/questions", asyncHandle(adminController.questionStats));
 router.get("/stats/tokens", asyncHandle(adminController.tokenStats));
 
+// Billing/token quota
+const adminBillingController = require("../controllers/adminBilling.controller");
+router.get("/billing/free-tokens", asyncHandle(adminBillingController.getFreeTokensSetting));
+router.patch("/billing/free-tokens", asyncHandle(adminBillingController.updateFreeTokensSetting));
+router.get("/billing/monthly", asyncHandle(adminBillingController.monthlyUserTokenStats));
+router.get("/billing/invoices", asyncHandle(adminBillingController.listInvoices));
+
 // Back-compat: previous path.
 router.get("/admin/users", asyncHandle(adminController.listUsers));
 

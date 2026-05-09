@@ -32,6 +32,7 @@ const ChatList = () => {
   const activeChatId = Number(id)
   const isExploreRoute = location.pathname === '/explore'
   const isContactRoute = location.pathname === '/contact'
+  const isBillingRoute = location.pathname === '/billing'
 
   const load = useCallback(async () => {
     const res = await apiRequestBackend('/api/chat')
@@ -205,6 +206,10 @@ const ChatList = () => {
           <Link className={`chatListNavLink ${isExploreRoute ? 'active' : ''}`} to="/explore">
             <i className="ti ti-compass" />
             {t('menu.explore')}
+          </Link>
+          <Link className={`chatListNavLink ${isBillingRoute ? 'active' : ''}`} to="/billing">
+            <i className="ti ti-credit-card" />
+            {t('menu.billing')}
           </Link>
           <Link className={`chatListNavLink ${isContactRoute ? 'active' : ''}`} to="/contact">
             <i className="ti ti-address-book" />

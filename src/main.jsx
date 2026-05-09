@@ -17,6 +17,8 @@ import AdminOverviewPage from './routes/admin/AdminOverviewPage.jsx'
 import AdminTripMapPage from './routes/admin/AdminTripMapPage.jsx'
 import AdminUsersPage from './routes/admin/AdminUsersPage.jsx'
 import AdminTokensPage from './routes/admin/AdminTokensPage.jsx'
+import AdminBillingPage from './routes/admin/AdminBillingPage.jsx'
+import BillingPage from './routes/billingPage/BillingPage.jsx'
 import ExplorePage from './routes/explorePage/ExplorePage.jsx'
 import ContactPage from './routes/contactPage/ContactPage.jsx'
 import UnderDevelopmentPage from './routes/underDevelopment/UnderDevelopmentPage.jsx'
@@ -62,6 +64,10 @@ const router = createBrowserRouter([
             element: <ContactPage />,
           },
           {
+            path: "/billing",
+            element: <BillingPage />,
+          },
+          {
             path: "/dashboard/chats/:id",
             element: <ChatPage />,
           },
@@ -76,6 +82,7 @@ const router = createBrowserRouter([
           { path: "map", element: <AdminTripMapPage /> },
           { path: "users", element: <AdminUsersPage /> },
           { path: "tokens", element: <AdminTokensPage /> },
+          { path: "billing", element: <AdminBillingPage /> },
         ],
       },
       {

@@ -29,10 +29,87 @@ model User {
   chats         Chat[]
   tripPlans     TripPlan[]
   aiUsages      AIUsage[]
+  tokenPurchases TokenPurchase[]
+  invoices       Invoice[]
+  memberships    Membership[]
 
   @@index([email])
   @@index([clerkUserId])
 }
+
+model TokenPurchase {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tokens    Int
+  amount    Float?
+  currency  String   @default("VND")
+  status    String   @default("PAID") // PAID | PENDING | FAILED | REFUNDED
+  provider  String?  // e.g. "manual", "momo", "vnpay"
+  note      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice Invoice[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Membership {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  status    String   @default("ACTIVE") // ACTIVE | CANCELED | EXPIRED
+  amount    Float?   @default(2)
+  currency  String   @default("USD")
+  provider  String?  // vnpay (later), manual
+  note      String?
+  startedAt DateTime @default(now())
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  invoice Invoice?
+
+  @@index([userId])
+  @@index([status])
+  @@index([endsAt])
+}
+
+model Invoice {
+  id              Int      @id @default(autoincrement())
+  userId          Int
+  tokenPurchaseId Int?     @unique
+  membershipId    Int?     @unique
+  number          String   @unique
+  status          String   @default("PAID")
+  amount          Float?
+  currency        String   @default("VND")
+  tokens          Int
+  provider        String?
+  note            String?
+  issuedAt        DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  // Giữ invoice ngay cả khi user bị xóa
+  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Nếu tokenPurchase bị xóa thì invoice vẫn giữ, chỉ null hóa
+  tokenPurchase TokenPurchase? @relation(fields: [tokenPurchaseId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  // Membership cũng để SetNull để tránh vòng lặp
+  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull, onUpdate: NoAction)
+
+  @@index([userId])
+  @@index([issuedAt])
+}
+
+
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())
