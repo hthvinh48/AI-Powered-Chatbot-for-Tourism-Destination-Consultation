@@ -97,16 +97,6 @@ const AdminBillingPage = () => {
   const [freeTokens, setFreeTokens] = useState(100000)
   const [savingFree, setSavingFree] = useState(false)
 
-  const [month, setMonth] = useState(monthToInputValue(new Date()))
-  const [q, setQ] = useState('')
-  const [sortBy, setSortBy] = useState('used')
-  const [sortDir, setSortDir] = useState('desc')
-  const [page, setPage] = useState(1)
-  const [total, setTotal] = useState(0)
-  const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
   const [invoiceMonth, setInvoiceMonth] = useState(monthToInputValue(new Date()))
   const [invoiceQ, setInvoiceQ] = useState('')
   const [invoicePage, setInvoicePage] = useState(1)
@@ -116,7 +106,6 @@ const AdminBillingPage = () => {
   const [invoiceError, setInvoiceError] = useState('')
 
   const limit = 10
-  const maxPages = useMemo(() => Math.max(1, Math.ceil((total || 0) / limit)), [total])
   const invoiceMaxPages = useMemo(() => Math.max(1, Math.ceil((invoiceTotal || 0) / limit)), [invoiceTotal])
 
   const loadSetting = useCallback(async () => {
@@ -124,36 +113,9 @@ const AdminBillingPage = () => {
     if (res?.freeTokensPerMonth != null) setFreeTokens(Number(res.freeTokensPerMonth) || 0)
   }, [])
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const params = new URLSearchParams()
-      if (month) params.set('month', month)
-      if (q) params.set('q', q)
-      params.set('sortBy', sortBy)
-      params.set('sortDir', sortDir)
-      params.set('page', String(page))
-      params.set('limit', String(limit))
-      const res = await apiRequestBackend(`/api/admin/billing/monthly?${params.toString()}`)
-      setItems(Array.isArray(res?.items) ? res.items : [])
-      setTotal(Number(res?.total) || 0)
-    } catch (err) {
-      setError(err?.message || t('admin.load_fail'))
-      setItems([])
-      setTotal(0)
-    } finally {
-      setLoading(false)
-    }
-  }, [month, page, q, sortBy, sortDir, t])
-
   useEffect(() => {
     loadSetting().catch(() => {})
   }, [loadSetting])
-
-  useEffect(() => {
-    load()
-  }, [load])
 
   const loadInvoices = useCallback(async () => {
     setInvoiceLoading(true)
@@ -195,7 +157,6 @@ const AdminBillingPage = () => {
       })
       setFreeTokens(Number(res?.freeTokensPerMonth) || n)
       notify.success(t('admin.billing.saved_free'))
-      await load()
     } catch (err) {
       notify.error(err?.message || t('admin.billing.save_free_fail'))
     } finally {
@@ -217,11 +178,6 @@ const AdminBillingPage = () => {
           <span>{t('admin.billing.free_title')}</span>
           <strong>{formatNumber(freeTokens, lang)}</strong>
           <small>{t('admin.billing.free_label')}</small>
-        </div>
-        <div className="admin-billing-hero-card">
-          <span>{t('admin.billing.monthly_title')}</span>
-          <strong>{formatNumber(total, lang)}</strong>
-          <small>{month}</small>
         </div>
         <div className="admin-billing-hero-card">
           <span>{t('billing.invoices')}</span>
@@ -251,137 +207,6 @@ const AdminBillingPage = () => {
             <i className="ti ti-device-floppy" />
             {savingFree ? t('admin.saving') : t('admin.apply')}
           </button>
-        </div>
-      </section>
-
-      <section className="admin-card admin-billing-card">
-        <div className="admin-billing-card-head">
-          <div>
-            <h3>{t('admin.billing.monthly_title')}</h3>
-            <p>{t('admin.billing.month')} {month}</p>
-          </div>
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
-            <i className="ti ti-refresh" />
-            {t('admin.refresh')}
-          </button>
-        </div>
-
-        <div className="admin-billing-filters">
-          <label className="admin-billing-field">
-            <span>{t('admin.billing.month')}</span>
-            <AdminMonthPicker
-              value={month}
-              lang={lang}
-              onChange={(nextMonth) => {
-                setMonth(nextMonth)
-                setPage(1)
-              }}
-            />
-          </label>
-          <label className="admin-billing-field admin-billing-field--search">
-            <span>{t('admin.search')}</span>
-            <input
-              className="admin-input admin-billing-input"
-              value={q}
-              onChange={(e) => {
-                setQ(e.target.value)
-                setPage(1)
-              }}
-              placeholder={t('admin.search_placeholder')}
-            />
-          </label>
-          <label className="admin-billing-field">
-            <span>{t('admin.sort_by')}</span>
-            <select
-              className="admin-select admin-billing-input"
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value)
-                setPage(1)
-              }}
-            >
-              <option value="used">{t('admin.billing.col.used')}</option>
-              <option value="purchased">{t('admin.billing.col.purchased')}</option>
-              <option value="remaining">{t('admin.billing.col.remaining')}</option>
-              <option value="email">{t('admin.sort.email')}</option>
-              <option value="username">{t('admin.sort.username')}</option>
-            </select>
-          </label>
-          <label className="admin-billing-field">
-            <span>{t('admin.sort_dir')}</span>
-            <select
-              className="admin-select admin-billing-input"
-              value={sortDir}
-              onChange={(e) => {
-                setSortDir(e.target.value)
-                setPage(1)
-              }}
-            >
-              <option value="desc">{t('admin.desc')}</option>
-              <option value="asc">{t('admin.asc')}</option>
-            </select>
-          </label>
-        </div>
-
-        {error ? (
-          <div className="admin-billing-alert">
-            <i className="ti ti-alert-circle" />
-            <span>{error}</span>
-          </div>
-        ) : null}
-
-        <div className="admin-billing-table-wrap">
-          <table className="admin-table admin-billing-table">
-            <thead>
-              <tr>
-                <th>{t('admin.table.email')}</th>
-                <th>{t('admin.users')}</th>
-                <th>{t('admin.billing.col.free')}</th>
-                <th>{t('admin.billing.col.purchased')}</th>
-                <th>{t('admin.billing.col.used')}</th>
-                <th>{t('admin.billing.col.remaining')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="admin-empty">{t('trip.loading')}</td>
-                </tr>
-              ) : null}
-              {!loading && items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="admin-empty">{t('admin.no_data')}</td>
-                </tr>
-              ) : null}
-              {items.map((row) => (
-                <tr key={row.userId}>
-                  <td><span className="admin-billing-strong">{row.email || '-'}</span></td>
-                  <td>{row.username || '-'}</td>
-                  <td>{formatNumber(row.freeTokens, lang)}</td>
-                  <td>{formatNumber(row.purchasedTokens, lang)}</td>
-                  <td>{formatNumber(row.usedTokens, lang)}</td>
-                  <td>
-                    <span className={Number(row.remainingTokens) < 0 ? 'admin-billing-negative' : 'admin-billing-strong'}>
-                      {formatNumber(row.remainingTokens, lang)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="admin-billing-pager">
-          <span>{formatNumber(total, lang)} {t('admin.users')}</span>
-          <div>
-            <button className="admin-page-btn" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-              <i className="ti ti-chevron-left" />
-            </button>
-            <span className="admin-page-index">{page}/{maxPages}</span>
-            <button className="admin-page-btn" type="button" onClick={() => setPage((p) => Math.min(maxPages, p + 1))} disabled={page >= maxPages}>
-              <i className="ti ti-chevron-right" />
-            </button>
-          </div>
         </div>
       </section>
 
