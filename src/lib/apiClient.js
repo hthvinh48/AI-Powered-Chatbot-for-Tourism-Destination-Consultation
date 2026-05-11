@@ -1,6 +1,9 @@
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 const API_BASE_URL = rawBaseUrl.replace(/\/+$/, "");
 
+let backendExchangePromise = null;
+let backendRefreshPromise = null;
+
 function buildUrl(path) {
   if (!path) throw new Error("Missing path");
   if (/^https?:\/\//i.test(path)) return path;
@@ -95,6 +98,38 @@ async function exchangeBackendAuthFromClerk(stored, setBackendAuth) {
   return next;
 }
 
+function getBackendExchange(stored, setBackendAuth) {
+  if (!backendExchangePromise) {
+    backendExchangePromise = exchangeBackendAuthFromClerk(stored, setBackendAuth).finally(() => {
+      backendExchangePromise = null;
+    });
+  }
+  return backendExchangePromise;
+}
+
+function refreshBackendAuth(stored, refreshToken, setBackendAuth) {
+  if (!backendRefreshPromise) {
+    backendRefreshPromise = apiRequest("/api/auth/refresh", {
+      method: "POST",
+      credentials: "omit",
+      body: { refreshToken },
+    })
+      .then((refreshed) => {
+        const next = {
+          ...stored,
+          accessToken: refreshed?.accessToken,
+          refreshToken: refreshed?.refreshToken,
+        };
+        setBackendAuth(next);
+        return next;
+      })
+      .finally(() => {
+        backendRefreshPromise = null;
+      });
+  }
+  return backendRefreshPromise;
+}
+
 export async function apiRequestBackend(path, options = {}) {
   const { getBackendAuth, setBackendAuth, clearBackendAuth } = await import("./backendAuth.js");
   let stored = getBackendAuth();
@@ -104,7 +139,7 @@ export async function apiRequestBackend(path, options = {}) {
 
   if (!accessToken || !refreshToken) {
     try {
-      const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+      const exchanged = await getBackendExchange(stored, setBackendAuth);
       if (exchanged) {
         stored = exchanged;
         accessToken = exchanged.accessToken;
@@ -122,7 +157,7 @@ export async function apiRequestBackend(path, options = {}) {
 
     if (!refreshToken) {
       try {
-        const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+        const exchanged = await getBackendExchange(stored, setBackendAuth);
         if (exchanged?.accessToken) {
           return await apiRequest(path, { ...options, token: exchanged.accessToken });
         }
@@ -133,24 +168,13 @@ export async function apiRequestBackend(path, options = {}) {
     }
 
     try {
-      const refreshed = await apiRequest("/api/auth/refresh", {
-        method: "POST",
-        credentials: "omit",
-        body: { refreshToken },
-      });
-
-      setBackendAuth({
-        ...stored,
-        accessToken: refreshed?.accessToken,
-        refreshToken: refreshed?.refreshToken,
-      });
-
-      return apiRequest(path, { ...options, token: refreshed?.accessToken });
+      const refreshedAuth = await refreshBackendAuth(stored, refreshToken, setBackendAuth);
+      return apiRequest(path, { ...options, token: refreshedAuth?.accessToken });
     } catch (refreshErr) {
       clearBackendAuth();
 
       try {
-        const exchanged = await exchangeBackendAuthFromClerk(stored, setBackendAuth);
+        const exchanged = await getBackendExchange(stored, setBackendAuth);
         if (exchanged?.accessToken) {
           return await apiRequest(path, { ...options, token: exchanged.accessToken });
         }

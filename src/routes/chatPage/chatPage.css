@@ -24,19 +24,40 @@
   border: 1px solid var(--glass-border);
   font-size: 14px;
   line-height: 1.55;
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
+  font-family: var(--font-ui-vi);
 }
 
 .chatBubbleUser {
   align-self: flex-end;
   background: rgba(47, 120, 238, 0.14);
   border-color: rgba(47, 120, 238, 0.32);
+  white-space: pre-wrap;
 }
 
 .chatBubbleBot {
   align-self: flex-start;
   background: var(--surface-2);
+}
+
+.chatMarkdown {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+}
+
+.chatMarkdown strong {
+  font-weight: 800;
+  color: var(--app-fg);
+}
+
+.chatMarkdownSpacer {
+  height: 10px;
+}
+
+.chatMarkdownListLine {
+  padding-left: 2px;
 }
 
 .chatSystemMsg {

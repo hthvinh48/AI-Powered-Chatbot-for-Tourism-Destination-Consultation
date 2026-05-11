@@ -62,15 +62,17 @@ const AdminTokensPage = () => {
         key: 'username',
         header: t('admin.table.username'),
         sortable: true,
-        minWidth: 170,
-        render: (x) => <span className="admin-token-user">{x.username || x.userId}</span>,
+        minWidth: 130,
+        render: (x) => (
+          <span className="admin-token-user admin-cell-ellipsis">{x.username || x.userId}</span>
+        ),
       },
       {
         key: 'email',
         header: t('admin.table.email'),
         sortable: true,
-        minWidth: 240,
-        render: (x) => x.email,
+        minWidth: 200,
+        render: (x) => <span className="admin-cell-ellipsis">{x.email}</span>,
       },
       {
         key: 'tokens',
@@ -84,8 +86,8 @@ const AdminTokensPage = () => {
         key: 'usage',
         header: t('admin.table.usage'),
         sortable: false,
-        minWidth: 220,
-        width: 240,
+        minWidth: 150,
+        width: 180,
         render: (x) => {
           const percent = summary.max > 0 ? Math.round(((x.tokens || 0) / summary.max) * 100) : 0
           return (

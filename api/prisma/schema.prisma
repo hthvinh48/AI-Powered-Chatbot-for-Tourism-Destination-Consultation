@@ -8,82 +8,26 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("USER") // ADMIN | USER
-
-  clerkUserId String?
-
-  bannedAt   DateTime?
-  banReason  String?
-
+  id                   Int            @id @default(autoincrement())
+  name                 String
+  email                String         @unique
+  password             String
+  role                 String         @default("USER")
+  clerkUserId          String?
+  bannedAt             DateTime?
+  banReason            String?
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  refreshTokens RefreshToken[]
-  chats         Chat[]
-  tripPlans     TripPlan[]
-  aiUsages      AIUsage[]
-  invoices       Invoice[]
-  memberships    Membership[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  aiUsages             AIUsage[]
+  chats                Chat[]
+  refreshTokens        RefreshToken[]
+  tripPlans            TripPlan[]
 
   @@index([email])
   @@index([clerkUserId])
 }
-
-model Membership {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  status    String   @default("PENDING") // PENDING | ACTIVE | CANCELED | EXPIRED | FAILED
-  amount    Float?   @default(2)
-  currency  String   @default("USD")
-  provider  String?  // vnpay (later), manual
-  note      String?
-  paymentRef String? @unique
-  startedAt DateTime @default(now())
-  endsAt    DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  invoice Invoice?
-
-  @@index([userId])
-  @@index([status])
-  @@index([endsAt])
-}
-
-model Invoice {
-  id              Int      @id @default(autoincrement())
-  userId          Int
-  membershipId    Int?     @unique
-  transactionNo          String?
-  invoiceNo   String?
-  description     String
-  status          String   @default("PAID")
-  amount          Float?
-  currency        String   @default("VND")
-  tokens          Int
-  provider        String?
-  note            String?
-  issuedAt        DateTime @default(now())
-  createdAt       DateTime @default(now())
-
-  // Giữ invoice ngay cả khi user bị xóa
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  // Membership cũng để SetNull để tránh vòng lặp
-  membership Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull, onUpdate: NoAction)
-
-  @@index([userId])
-  @@index([issuedAt])
-}
-
-
 
 model RefreshToken {
   id        Int      @id @default(autoincrement())
@@ -91,20 +35,17 @@ model RefreshToken {
   userId    Int
   createdAt DateTime @default(now())
   expiresAt DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Chat {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   userId    Int
   title     String?
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  createdAt DateTime   @default(now())
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
   tripPlans TripPlan[]
 
@@ -114,31 +55,27 @@ model Chat {
 model Message {
   id        Int      @id @default(autoincrement())
   chatId    Int
-  role      String   // USER | ASSISTANT
+  role      String
   content   String   @db.NVarChar(Max)
   createdAt DateTime @default(now())
-
-  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])
 }
 
 model TripPlan {
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  chatId      Int?
-  title       String
-  description String?   @db.NVarChar(Max)
-  startDate   DateTime?
-  endDate     DateTime?
-  budget      Float?
-  createdAt   DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  chat Chat? @relation(fields: [chatId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
+  id           Int           @id @default(autoincrement())
+  userId       Int
+  chatId       Int?
+  title        String
+  description  String?       @db.NVarChar(Max)
+  startDate    DateTime?
+  endDate      DateTime?
+  budget       Float?
+  createdAt    DateTime      @default(now())
   destinations Destination[]
+  chat         Chat?         @relation(fields: [chatId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user         User          @relation(fields: [userId], references: [id], onUpdate: NoAction)
 
   @@index([userId])
   @@index([chatId])
@@ -150,10 +87,9 @@ model Destination {
   name       String
   location   String?
   dayNumber  Int?
-  note       String? @db.NVarChar(Max)
+  note       String?  @db.NVarChar(Max)
   createdAt  DateTime @default(now())
-
-  tripPlan TripPlan @relation(fields: [tripPlanId], references: [id], onDelete: Cascade)
+  tripPlan   TripPlan @relation(fields: [tripPlanId], references: [id], onDelete: Cascade)
 
   @@index([tripPlanId])
 }
@@ -163,8 +99,7 @@ model AIUsage {
   userId    Int
   tokens    Int
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

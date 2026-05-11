@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  font-family: var(--font-ui-vi);
 }
 
 .tripPlanResp {
@@ -521,6 +522,138 @@
   padding: 10px 12px 12px;
   font-size: 12px;
   color: #a9c2de;
+}
+
+:root[data-theme='light'] .tripPlanCard {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(47, 120, 238, 0.08), transparent 34%),
+    linear-gradient(140deg, #ffffff, #f4f8fd);
+  border-color: rgba(21, 36, 54, 0.12);
+  box-shadow: 0 14px 34px rgba(21, 36, 54, 0.08);
+}
+
+:root[data-theme='light'] .tripPlanResp {
+  color: #5b728f;
+}
+
+:root[data-theme='light'] .tripPlanTitle,
+:root[data-theme='light'] .tripPlanSectionHead,
+:root[data-theme='light'] .tripPlanModalTitle {
+  color: #122033;
+}
+
+:root[data-theme='light'] .tripPlanChip,
+:root[data-theme='light'] .tripPlanModalMetaStrip span,
+:root[data-theme='light'] .tripPlanDayMeta span,
+:root[data-theme='light'] .tripPlanEntityTags span,
+:root[data-theme='light'] .tripPlanActivityTags span {
+  background: #eef5ff;
+  border-color: rgba(47, 120, 238, 0.18);
+  color: #274769;
+}
+
+:root[data-theme='light'] .tripPlanBtn {
+  background: #ffffff;
+  border-color: rgba(21, 36, 54, 0.18);
+  color: #122033;
+  box-shadow: 0 8px 18px rgba(21, 36, 54, 0.06);
+}
+
+:root[data-theme='light'] .tripPlanBtn:hover:not(:disabled) {
+  background: #f1f6fd;
+  border-color: rgba(47, 120, 238, 0.24);
+}
+
+:root[data-theme='light'] .tripPlanBtnPrimary {
+  background: #2f78ee;
+  border-color: #2f78ee;
+  color: #ffffff;
+}
+
+:root[data-theme='light'] .tripPlanBtnPrimary:hover:not(:disabled) {
+  background: #2866c6;
+  border-color: #2866c6;
+}
+
+:root[data-theme='light'] .tripPlanModal {
+  background: rgba(15, 23, 42, 0.46);
+}
+
+:root[data-theme='light'] .tripPlanModalBody {
+  background: #f8fbff;
+  border-color: rgba(21, 36, 54, 0.14);
+  box-shadow: 0 22px 60px rgba(21, 36, 54, 0.22);
+}
+
+:root[data-theme='light'] .tripPlanModalTop {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(21, 36, 54, 0.12);
+}
+
+:root[data-theme='light'] .tripPlanModalLabel {
+  color: #5b728f;
+}
+
+:root[data-theme='light'] .tripPlanRouteLine {
+  color: #58718f;
+}
+
+:root[data-theme='light'] .tripPlanClose {
+  background: #ffffff;
+  color: #122033;
+  border-color: rgba(21, 36, 54, 0.18);
+}
+
+:root[data-theme='light'] .tripPlanClose:hover {
+  background: #eef5ff;
+}
+
+:root[data-theme='light'] .tripPlanSection,
+:root[data-theme='light'] .tripPlanInfoItem,
+:root[data-theme='light'] .tripPlanEntityCard,
+:root[data-theme='light'] .tripPlanDayCard,
+:root[data-theme='light'] .tripPlanActivityItem {
+  background: #ffffff;
+  border-color: rgba(21, 36, 54, 0.12);
+}
+
+:root[data-theme='light'] .tripPlanInfoLabel span {
+  color: #607896;
+}
+
+:root[data-theme='light'] .tripPlanInfoItem strong,
+:root[data-theme='light'] .tripPlanEntityBody h6,
+:root[data-theme='light'] .tripPlanDayTitleWrap h6,
+:root[data-theme='light'] .tripPlanActivityBody strong {
+  color: #14243a;
+}
+
+:root[data-theme='light'] .tripPlanEntityBody p,
+:root[data-theme='light'] .tripPlanActivityBody p,
+:root[data-theme='light'] .tripPlanEmpty {
+  color: #5b728f;
+}
+
+:root[data-theme='light'] .tripPlanEntityBody p:nth-child(2) {
+  color: #315f9a;
+}
+
+:root[data-theme='light'] .tripPlanEntityMedia,
+:root[data-theme='light'] .tripPlanDayHead {
+  border-color: rgba(21, 36, 54, 0.1);
+}
+
+:root[data-theme='light'] .tripPlanDayHead {
+  background: #f3f7fc;
+}
+
+:root[data-theme='light'] .tripPlanEntityImgPlaceholder {
+  background: linear-gradient(150deg, #edf4fd, #f9fbff);
+  color: #6b83a0;
+}
+
+:root[data-theme='light'] .tripPlanEntityImgPlaceholder span {
+  color: #5b728f;
 }
 
 @media (max-width: 1024px) {

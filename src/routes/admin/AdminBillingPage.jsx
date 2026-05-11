@@ -11,6 +11,51 @@ function monthToInputValue(d) {
   return `${y}-${m}`
 }
 
+function parseMonthValue(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})$/)
+  if (match) {
+    return { year: match[1], month: match[2] }
+  }
+  const fallback = monthToInputValue(new Date())
+  const [year, month] = fallback.split('-')
+  return { year, month }
+}
+
+function buildMonthValue(year, month) {
+  return `${year}-${String(month).padStart(2, '0')}`
+}
+
+const CURRENT_YEAR = new Date().getFullYear()
+const BILLING_YEARS = Array.from({ length: 7 }, (_, index) => String(CURRENT_YEAR - 3 + index))
+const BILLING_MONTHS = Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0'))
+
+const AdminMonthPicker = ({ value, onChange, lang }) => {
+  const { year, month } = parseMonthValue(value)
+  const monthFormatter = new Intl.DateTimeFormat(lang === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })
+
+  const onYearChange = (nextYear) => onChange(buildMonthValue(nextYear, month))
+  const onMonthChange = (nextMonth) => onChange(buildMonthValue(year, nextMonth))
+
+  return (
+    <div className="admin-billing-month-picker">
+      <select className="admin-select admin-billing-input" value={month} onChange={(e) => onMonthChange(e.target.value)}>
+        {BILLING_MONTHS.map((m) => (
+          <option key={m} value={m}>
+            {monthFormatter.format(new Date(Number(year), Number(m) - 1, 1))}
+          </option>
+        ))}
+      </select>
+      <select className="admin-select admin-billing-input" value={year} onChange={(e) => onYearChange(e.target.value)}>
+        {BILLING_YEARS.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function formatNumber(value, lang) {
   const n = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(n)) return '0'
@@ -22,6 +67,27 @@ function formatMoney(amount, currency, lang) {
   if (!Number.isFinite(n)) return '-'
   const formatted = new Intl.NumberFormat(lang === 'vi' ? 'vi-VN' : 'en-US').format(n)
   return currency ? `${formatted} ${currency}` : formatted
+}
+
+function formatDateTime(value, lang) {
+  if (!value) return '-'
+  const d = new Date(value)
+  if (!Number.isFinite(d.getTime())) return '-'
+  return d.toLocaleString(lang === 'vi' ? 'vi-VN' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+function statusClass(status) {
+  const value = String(status || '').toLowerCase()
+  if (value === 'paid' || value === 'active') return 'admin-billing-status--paid'
+  if (value === 'pending') return 'admin-billing-status--pending'
+  if (value === 'failed' || value === 'refunded') return 'admin-billing-status--failed'
+  return ''
 }
 
 const AdminBillingPage = () => {
@@ -138,56 +204,215 @@ const AdminBillingPage = () => {
   }
 
   return (
-    <div className="admin-page">
-      <div className="admin-page-header">
+    <div className="admin-page admin-billing-page">
+      <div className="admin-page-header admin-billing-header">
         <div>
           <h1 className="admin-page-title">{t('admin.billing.title')}</h1>
           <p className="admin-page-subtitle">{t('admin.billing.subtitle')}</p>
         </div>
       </div>
 
-      <div className="admin-card admin-card--padded">
-        <div className="admin-card-head">
-          <h3>{t('admin.billing.free_title')}</h3>
+      <section className="admin-billing-hero">
+        <div className="admin-billing-hero-card admin-billing-hero-card--accent">
+          <span>{t('admin.billing.free_title')}</span>
+          <strong>{formatNumber(freeTokens, lang)}</strong>
+          <small>{t('admin.billing.free_label')}</small>
         </div>
-        <div className="admin-form-row">
-          <label className="admin-label">
-            {t('admin.billing.free_label')}
+        <div className="admin-billing-hero-card">
+          <span>{t('admin.billing.monthly_title')}</span>
+          <strong>{formatNumber(total, lang)}</strong>
+          <small>{month}</small>
+        </div>
+        <div className="admin-billing-hero-card">
+          <span>{t('billing.invoices')}</span>
+          <strong>{formatNumber(invoiceTotal, lang)}</strong>
+          <small>{invoiceMonth}</small>
+        </div>
+      </section>
+
+      <section className="admin-card admin-billing-card">
+        <div className="admin-billing-card-head">
+          <div>
+            <h3>{t('admin.billing.free_title')}</h3>
+            <p>{t('admin.billing.subtitle')}</p>
+          </div>
+        </div>
+        <div className="admin-billing-quota-row">
+          <label className="admin-billing-field admin-billing-field--quota">
+            <span>{t('admin.billing.free_label')}</span>
             <input
-              className="admin-input"
+              className="admin-input admin-billing-input"
               value={String(freeTokens)}
               onChange={(e) => setFreeTokens(e.target.value)}
-              style={{ maxWidth: 220 }}
+              inputMode="numeric"
             />
           </label>
-          <button className="admin-btn" type="button" onClick={saveFree} disabled={savingFree}>
+          <button className="admin-btn admin-btn--primary admin-billing-apply" type="button" onClick={saveFree} disabled={savingFree}>
+            <i className="ti ti-device-floppy" />
             {savingFree ? t('admin.saving') : t('admin.apply')}
           </button>
         </div>
-      </div>
+      </section>
 
-      <div className="admin-card admin-card--padded" style={{ marginTop: 12 }}>
-        <div className="admin-card-head">
-          <h3>{t('billing.invoices')}</h3>
+      <section className="admin-card admin-billing-card">
+        <div className="admin-billing-card-head">
+          <div>
+            <h3>{t('admin.billing.monthly_title')}</h3>
+            <p>{t('admin.billing.month')} {month}</p>
+          </div>
+          <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
+            <i className="ti ti-refresh" />
+            {t('admin.refresh')}
+          </button>
         </div>
 
-        <div className="admin-filters">
-          <label className="admin-label">
-            {t('admin.billing.month')}
+        <div className="admin-billing-filters">
+          <label className="admin-billing-field">
+            <span>{t('admin.billing.month')}</span>
+            <AdminMonthPicker
+              value={month}
+              lang={lang}
+              onChange={(nextMonth) => {
+                setMonth(nextMonth)
+                setPage(1)
+              }}
+            />
+          </label>
+          <label className="admin-billing-field admin-billing-field--search">
+            <span>{t('admin.search')}</span>
             <input
-              className="admin-input"
-              type="month"
-              value={invoiceMonth}
+              className="admin-input admin-billing-input"
+              value={q}
               onChange={(e) => {
-                setInvoiceMonth(e.target.value)
+                setQ(e.target.value)
+                setPage(1)
+              }}
+              placeholder={t('admin.search_placeholder')}
+            />
+          </label>
+          <label className="admin-billing-field">
+            <span>{t('admin.sort_by')}</span>
+            <select
+              className="admin-select admin-billing-input"
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value)
+                setPage(1)
+              }}
+            >
+              <option value="used">{t('admin.billing.col.used')}</option>
+              <option value="purchased">{t('admin.billing.col.purchased')}</option>
+              <option value="remaining">{t('admin.billing.col.remaining')}</option>
+              <option value="email">{t('admin.sort.email')}</option>
+              <option value="username">{t('admin.sort.username')}</option>
+            </select>
+          </label>
+          <label className="admin-billing-field">
+            <span>{t('admin.sort_dir')}</span>
+            <select
+              className="admin-select admin-billing-input"
+              value={sortDir}
+              onChange={(e) => {
+                setSortDir(e.target.value)
+                setPage(1)
+              }}
+            >
+              <option value="desc">{t('admin.desc')}</option>
+              <option value="asc">{t('admin.asc')}</option>
+            </select>
+          </label>
+        </div>
+
+        {error ? (
+          <div className="admin-billing-alert">
+            <i className="ti ti-alert-circle" />
+            <span>{error}</span>
+          </div>
+        ) : null}
+
+        <div className="admin-billing-table-wrap">
+          <table className="admin-table admin-billing-table">
+            <thead>
+              <tr>
+                <th>{t('admin.table.email')}</th>
+                <th>{t('admin.users')}</th>
+                <th>{t('admin.billing.col.free')}</th>
+                <th>{t('admin.billing.col.purchased')}</th>
+                <th>{t('admin.billing.col.used')}</th>
+                <th>{t('admin.billing.col.remaining')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="admin-empty">{t('trip.loading')}</td>
+                </tr>
+              ) : null}
+              {!loading && items.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="admin-empty">{t('admin.no_data')}</td>
+                </tr>
+              ) : null}
+              {items.map((row) => (
+                <tr key={row.userId}>
+                  <td><span className="admin-billing-strong">{row.email || '-'}</span></td>
+                  <td>{row.username || '-'}</td>
+                  <td>{formatNumber(row.freeTokens, lang)}</td>
+                  <td>{formatNumber(row.purchasedTokens, lang)}</td>
+                  <td>{formatNumber(row.usedTokens, lang)}</td>
+                  <td>
+                    <span className={Number(row.remainingTokens) < 0 ? 'admin-billing-negative' : 'admin-billing-strong'}>
+                      {formatNumber(row.remainingTokens, lang)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="admin-billing-pager">
+          <span>{formatNumber(total, lang)} {t('admin.users')}</span>
+          <div>
+            <button className="admin-page-btn" type="button" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
+              <i className="ti ti-chevron-left" />
+            </button>
+            <span className="admin-page-index">{page}/{maxPages}</span>
+            <button className="admin-page-btn" type="button" onClick={() => setPage((p) => Math.min(maxPages, p + 1))} disabled={page >= maxPages}>
+              <i className="ti ti-chevron-right" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="admin-card admin-billing-card">
+        <div className="admin-billing-card-head">
+          <div>
+            <h3>{t('billing.invoices')}</h3>
+            <p>{t('admin.billing.month')} {invoiceMonth}</p>
+          </div>
+          <button className="admin-btn admin-btn--ghost" type="button" onClick={loadInvoices} disabled={invoiceLoading}>
+            <i className="ti ti-refresh" />
+            {t('admin.refresh')}
+          </button>
+        </div>
+
+        <div className="admin-billing-filters">
+          <label className="admin-billing-field">
+            <span>{t('admin.billing.month')}</span>
+            <AdminMonthPicker
+              value={invoiceMonth}
+              lang={lang}
+              onChange={(nextMonth) => {
+                setInvoiceMonth(nextMonth)
                 setInvoicePage(1)
               }}
             />
           </label>
-          <label className="admin-label">
-            {t('admin.search')}
+          <label className="admin-billing-field admin-billing-field--search">
+            <span>{t('admin.search')}</span>
             <input
-              className="admin-input"
+              className="admin-input admin-billing-input"
               value={invoiceQ}
               onChange={(e) => {
                 setInvoiceQ(e.target.value)
@@ -196,21 +421,24 @@ const AdminBillingPage = () => {
               placeholder={t('admin.search_placeholder')}
             />
           </label>
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={loadInvoices}>
-            {t('admin.refresh')}
-          </button>
         </div>
 
-        {invoiceError ? <div className="admin-error">{invoiceError}</div> : null}
+        {invoiceError ? (
+          <div className="admin-billing-alert">
+            <i className="ti ti-alert-circle" />
+            <span>{invoiceError}</span>
+          </div>
+        ) : null}
 
-        <div className="admin-table-wrap">
-          <table className="admin-table">
+        <div className="admin-billing-table-wrap">
+          <table className="admin-table admin-billing-table">
             <thead>
               <tr>
                 <th>{t('admin.table.email')}</th>
                 <th>{t('billing.col.transactionNo')}</th>
                 <th>{t('billing.col.invoiceNo')}</th>
                 <th>{t('billing.col.description')}</th>
+                <th>{t('billing.col.tokens')}</th>
                 <th>{t('billing.col.amount')}</th>
                 <th>{t('billing.col.status')}</th>
                 <th>{t('billing.col.date')}</th>
@@ -219,40 +447,47 @@ const AdminBillingPage = () => {
             <tbody>
               {invoiceLoading ? (
                 <tr>
-                  <td colSpan={6} className="admin-empty">{t('trip.loading')}</td>
+                  <td colSpan={8} className="admin-empty">{t('trip.loading')}</td>
                 </tr>
               ) : null}
               {!invoiceLoading && invoiceItems.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="admin-empty">{t('admin.no_data')}</td>
+                  <td colSpan={8} className="admin-empty">{t('admin.no_data')}</td>
                 </tr>
               ) : null}
               {invoiceItems.map((inv) => (
                 <tr key={inv.id}>
-                  <td>{inv.user?.email || '-'}</td>
+                  <td><span className="admin-billing-strong">{inv.user?.email || '-'}</span></td>
                   <td>{inv.transactionNo || '-'}</td>
                   <td>{inv.invoiceNo || '-'}</td>
                   <td>{inv.description || '-'}</td>
                   <td>{formatNumber(inv.tokens, lang)}</td>
                   <td>{inv.amount != null ? formatMoney(inv.amount, inv.currency, lang) : '-'}</td>
-                  <td>{inv.status || '-'}</td>
-                  <td>{inv.issuedAt ? new Date(inv.issuedAt).toLocaleString() : '-'}</td>
+                  <td>
+                    <span className={`admin-billing-status ${statusClass(inv.status)}`}>
+                      {inv.status || '-'}
+                    </span>
+                  </td>
+                  <td>{formatDateTime(inv.issuedAt, lang)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <div className="admin-pager">
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={() => setInvoicePage((p) => Math.max(1, p - 1))} disabled={invoicePage <= 1}>
-            <i className="ti ti-chevron-left" /> {t('chat.prev_page')}
-          </button>
-          <div className="admin-pager-text">{t('chat.page')} {invoicePage}/{invoiceMaxPages}</div>
-          <button className="admin-btn admin-btn--ghost" type="button" onClick={() => setInvoicePage((p) => Math.min(invoiceMaxPages, p + 1))} disabled={invoicePage >= invoiceMaxPages}>
-            {t('chat.next_page')} <i className="ti ti-chevron-right" />
-          </button>
+        <div className="admin-billing-pager">
+          <span>{formatNumber(invoiceTotal, lang)} {t('billing.invoices')}</span>
+          <div>
+            <button className="admin-page-btn" type="button" onClick={() => setInvoicePage((p) => Math.max(1, p - 1))} disabled={invoicePage <= 1}>
+              <i className="ti ti-chevron-left" />
+            </button>
+            <span className="admin-page-index">{invoicePage}/{invoiceMaxPages}</span>
+            <button className="admin-page-btn" type="button" onClick={() => setInvoicePage((p) => Math.min(invoiceMaxPages, p + 1))} disabled={invoicePage >= invoiceMaxPages}>
+              <i className="ti ti-chevron-right" />
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

@@ -14,13 +14,13 @@ import SignInPage from './routes/signInPage/SignInPage.jsx'
 import SignUpPage from './routes/signUpPage/SignUpPage.jsx'
 import AdminLayout from './routes/admin/AdminLayout.jsx'
 import AdminOverviewPage from './routes/admin/AdminOverviewPage.jsx'
-import AdminTripMapPage from './routes/admin/AdminTripMapPage.jsx'
 import AdminUsersPage from './routes/admin/AdminUsersPage.jsx'
 import AdminTokensPage from './routes/admin/AdminTokensPage.jsx'
 import AdminBillingPage from './routes/admin/AdminBillingPage.jsx'
 import BillingPage from './routes/billingPage/BillingPage.jsx'
 import ExplorePage from './routes/explorePage/ExplorePage.jsx'
 import ContactPage from './routes/contactPage/ContactPage.jsx'
+import UserTripMapPage from './routes/tripMap/UserTripMapPage.jsx'
 import UnderDevelopmentPage from './routes/underDevelopment/UnderDevelopmentPage.jsx'
 import NotFoundPage from './routes/notFound/NotFoundPage.jsx'
 
@@ -68,6 +68,10 @@ const router = createBrowserRouter([
             element: <BillingPage />,
           },
           {
+            path: "/dashboard/trip-map",
+            element: <UserTripMapPage />,
+          },
+          {
             path: "/dashboard/chats/:id",
             element: <ChatPage />,
           },
@@ -79,7 +83,6 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminOverviewPage /> },
           { path: "overview", element: <Navigate to="/admin" replace /> },
-          { path: "map", element: <AdminTripMapPage /> },
           { path: "users", element: <AdminUsersPage /> },
           { path: "tokens", element: <AdminTokensPage /> },
           { path: "billing", element: <AdminBillingPage /> },

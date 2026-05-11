@@ -142,10 +142,6 @@ const AdminOverviewPage = () => {
             </div>
 
             <div className="admin-overview-actions">
-                <Link to="/admin/map" className="admin-btn admin-btn--ghost">
-                    <i className="ti ti-map-2" />
-                    {t('admin.map.nav')}
-                </Link>
                 <Link to="/admin/users" className="admin-btn admin-btn--ghost">
                     <i className="ti ti-users" />
                     {t('admin.users')}

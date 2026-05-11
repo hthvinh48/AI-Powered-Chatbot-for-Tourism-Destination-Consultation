@@ -146,7 +146,7 @@ const AdminDataTable = ({
                                     <th
                                         key={col.key}
                                         style={col.minWidth ? { minWidth: `${col.minWidth}px` } : undefined}
-                                        className={col.sortable ? 'is-sortable' : ''}
+                                        className={`${col.sortable ? 'is-sortable' : ''} ${col.headerClassName || ''}`.trim()}
                                     >
                                         <button
                                             type="button"
@@ -204,7 +204,7 @@ const AdminDataTable = ({
                             ? pageRows.map((row, index) => (
                                 <tr key={resolveRowKey(row, index)}>
                                     {columns.map((col) => (
-                                        <td key={col.key}>
+                                        <td key={col.key} className={col.cellClassName || ''}>
                                             {typeof col.render === 'function' ? col.render(row) : row?.[col.key]}
                                         </td>
                                     ))}

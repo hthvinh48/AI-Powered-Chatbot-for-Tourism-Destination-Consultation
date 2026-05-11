@@ -14,13 +14,15 @@
   background: #101822;
   display: flex;
   align-items: center;
-  padding: clamp(20px, 4vw, 56px);
+  padding: clamp(22px, 4vw, 58px);
 }
 
 .homeHeroBackdrop {
   position: absolute;
   inset: 0;
-  background: linear-gradient(112deg, rgba(15, 24, 36, 0.95), rgba(26, 35, 48, 0.82));
+  background:
+    radial-gradient(circle at 74% 22%, rgba(54, 168, 255, 0.24), transparent 28%),
+    linear-gradient(112deg, rgba(11, 23, 37, 0.96), rgba(21, 43, 56, 0.84));
   z-index: 1;
 }
 
@@ -36,8 +38,8 @@
 
 .homeHeroContent {
   position: relative;
-  z-index: 2;
-  max-width: 580px;
+  z-index: 3;
+  max-width: 620px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -55,7 +57,7 @@
 }
 
 .homeHeroTitle {
-  font-size: clamp(38px, 8vw, 74px);
+  font-size: clamp(40px, 7vw, 78px);
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: 0;
@@ -70,6 +72,25 @@
   animation: homeTitleShimmer 9s ease-in-out infinite;
 }
 
+.homePage--vi .homeHeroTitle {
+  font-family: var(--font-ui-vi);
+  font-size: clamp(38px, 5.8vw, 68px);
+  font-weight: 700;
+  line-height: 1.13;
+  max-width: 760px;
+  text-wrap: balance;
+  filter: drop-shadow(0 7px 16px rgba(47, 120, 238, 0.18));
+}
+
+.homePage--vi .homeHeroLabel,
+.homePage--vi .homeHeroText,
+.homePage--vi .homePromptChips,
+.homePage--vi .homeHeroActions,
+.homePage--vi .homeChatPreview,
+.homePage--vi .homeHighlights {
+  font-family: var(--font-ui-vi);
+}
+
 .homeHeroTitle::after {
   content: attr(data-title);
   position: absolute;
@@ -81,10 +102,44 @@
   z-index: -1;
 }
 
+.homePage--vi .homeHeroTitle::after {
+  filter: blur(11px);
+  transform: translateY(4px);
+}
+
 .homeHeroText {
   font-size: clamp(15px, 2vw, 18px);
   color: #d2def0;
-  max-width: 48ch;
+  max-width: 50ch;
+  line-height: 1.6;
+}
+
+.homePromptChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 600px;
+}
+
+.homePromptChips a {
+  min-height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 182, 255, 0.34);
+  background: rgba(23, 44, 66, 0.72);
+  color: #dbeafe;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 11px;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.25;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.homePromptChips a:hover {
+  transform: translateY(-1px);
+  background: rgba(47, 120, 238, 0.28);
+  border-color: rgba(125, 182, 255, 0.62);
 }
 
 .homeHeroActions {
@@ -135,9 +190,9 @@
 
 .homeHeroBotWrap {
   position: absolute;
-  right: clamp(8px, 3vw, 44px);
-  bottom: 0;
-  height: min(76%, 520px);
+  right: clamp(28px, 4.5vw, 78px);
+  bottom: 4px;
+  height: min(60%, 410px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -147,11 +202,122 @@
   animation: homeBotFloat 6.4s ease-in-out infinite;
 }
 
+.homeChatPreview {
+  position: absolute;
+  right: clamp(300px, 25vw, 430px);
+  bottom: clamp(76px, 13vh, 112px);
+  width: min(340px, 25vw);
+  z-index: 4;
+  border: 1px solid rgba(125, 182, 255, 0.22);
+  background: rgba(10, 23, 36, 0.74);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 42px rgba(0, 0, 0, 0.2);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.homeChatPreviewSecondary {
+  right: clamp(286px, 23.5vw, 400px);
+  bottom: clamp(238px, 32vh, 300px);
+  width: min(320px, 24vw);
+  z-index: 3;
+  transform: translateX(22px);
+  opacity: 0.96;
+}
+
+.homeChatPreviewTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b8d8ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.homeChatStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.1);
+}
+
+.homeChatStatusDotRoute {
+  background: #60a5fa;
+  box-shadow: 0 0 0 5px rgba(96, 165, 250, 0.12);
+}
+
+.homeChatBubble {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 12px;
+  padding: 8px 11px;
+  font-size: 12.25px;
+  line-height: 1.45;
+  font-family: var(--font-ui-vi);
+}
+
+.homeChatBubbleUser {
+  align-self: flex-end;
+  background: rgba(47, 120, 238, 0.9);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.homeChatBubbleBot {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #e7f1ff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 4px;
+}
+
+.homeChatBubbleBotPlan {
+  align-items: flex-start;
+  max-width: 100%;
+  background: rgba(32, 54, 74, 0.78);
+}
+
+.homeChatBubbleBotPlan i {
+  color: #7db6ff;
+  flex-shrink: 0;
+  font-size: 16px;
+  margin-top: 1px;
+}
+
+.homeTypingDots {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.homeTypingDots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #7db6ff;
+  animation: homeTypingDot 1.2s ease-in-out infinite;
+}
+
+.homeTypingDots i:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.homeTypingDots i:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
 .homeHeroBotGlow {
   position: absolute;
-  width: min(72%, 300px);
+  width: min(82%, 310px);
   aspect-ratio: 1 / 1;
-  bottom: 10%;
+  bottom: 8%;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(62, 173, 255, 0.34) 0%, rgba(62, 173, 255, 0.04) 58%, transparent 74%);
   filter: blur(2px);
@@ -163,7 +329,7 @@
   width: auto;
   z-index: 1;
   object-fit: contain;
-  filter: drop-shadow(0 22px 26px rgba(15, 24, 36, 0.34));
+  filter: drop-shadow(0 20px 24px rgba(15, 24, 36, 0.32));
   animation: homeBotTilt 10s ease-in-out infinite;
 }
 
@@ -172,7 +338,9 @@
 }
 
 :root[data-theme='light'] .homeHeroBackdrop {
-  background: linear-gradient(112deg, rgba(231, 242, 255, 0.86), rgba(204, 223, 245, 0.74));
+  background:
+    radial-gradient(circle at 72% 22%, rgba(47, 120, 238, 0.2), transparent 30%),
+    linear-gradient(112deg, rgba(242, 248, 255, 0.94), rgba(216, 232, 249, 0.78));
 }
 
 :root[data-theme='light'] .homeHeroLabel {
@@ -202,6 +370,17 @@
   color: #355679;
 }
 
+:root[data-theme='light'] .homePromptChips a {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(37, 103, 216, 0.22);
+  color: #1f4e82;
+}
+
+:root[data-theme='light'] .homePromptChips a:hover {
+  background: #eaf3ff;
+  border-color: rgba(37, 103, 216, 0.36);
+}
+
 :root[data-theme='light'] .homeBtnGhost {
   border-color: rgba(17, 48, 86, 0.3);
   color: #113056;
@@ -215,6 +394,26 @@
 :root[data-theme='light'] .homeHighlightItem {
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 8px 26px rgba(20, 36, 54, 0.07);
+}
+
+:root[data-theme='light'] .homeChatPreview {
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(37, 103, 216, 0.18);
+  box-shadow: 0 24px 48px rgba(20, 36, 54, 0.15);
+}
+
+:root[data-theme='light'] .homeChatPreviewTop {
+  color: #2c5f97;
+}
+
+:root[data-theme='light'] .homeChatBubbleBot {
+  background: #f1f7ff;
+  border-color: rgba(37, 103, 216, 0.12);
+  color: #25415f;
+}
+
+:root[data-theme='light'] .homeChatBubbleBotPlan {
+  background: #eef6ff;
 }
 
 .homeHighlights {
@@ -236,6 +435,22 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.homeHighlightIcon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #67adff;
+  background: rgba(47, 120, 238, 0.16);
+  border: 1px solid rgba(47, 120, 238, 0.22);
+}
+
+.homeHighlightIcon i {
+  font-size: 19px;
 }
 
 .homeHighlightItem h3 {
@@ -322,6 +537,19 @@
   }
 }
 
+@keyframes homeTypingDot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
 @keyframes homeFeatureFlash {
   0% {
     border-color: rgba(47, 120, 238, 0.65);
@@ -339,6 +567,13 @@
   }
 }
 
+@media (max-width: 1220px) {
+  .homeChatPreview,
+  .homeChatPreviewSecondary {
+    display: none;
+  }
+}
+
 @media (max-width: 1024px) {
   .homeHero {
     min-height: 560px;
@@ -347,7 +582,7 @@
 
   .homeHeroBotWrap {
     right: 8px;
-    height: 50%;
+    height: 42%;
   }
 
   .homeHeroBot {
@@ -357,11 +592,18 @@
   .homeHighlights {
     grid-template-columns: 1fr;
   }
+
 }
 
 @media (max-width: 640px) {
   .homeHero {
-    min-height: 520px;
+    min-height: 680px;
+    align-items: flex-start;
+  }
+
+  .homePage--vi .homeHeroTitle {
+    font-size: clamp(34px, 12vw, 46px);
+    line-height: 1.16;
   }
 
   .homeHeroContent {
@@ -371,6 +613,23 @@
   .homeHeroText {
     max-width: 100%;
   }
+
+  .homeHeroBotWrap {
+    height: 250px;
+    right: -28px;
+    opacity: 0.72;
+  }
+
+  .homeChatPreview {
+    left: 16px;
+    right: 16px;
+    bottom: 18px;
+    width: auto;
+  }
+
+  .homeChatPreviewSecondary {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -378,7 +637,8 @@
   .homeHeroTitle,
   .homeHeroBotWrap,
   .homeHeroBot,
-  .homeHeroBotGlow {
+  .homeHeroBotGlow,
+  .homeTypingDots i {
     animation: none !important;
   }
 }

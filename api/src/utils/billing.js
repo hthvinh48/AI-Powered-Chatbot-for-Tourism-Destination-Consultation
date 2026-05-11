@@ -45,21 +45,35 @@ async function getUserTokenLedger(userId, at = new Date()) {
 
   const freeTokensPerMonth = await getFreeTokensPerMonth();
 
-  const [usedAgg, activeMember] = await prisma.$transaction([
-    prisma.aIUsage.aggregate({
-      where: { userId, createdAt: { gte: from, lt: to } },
-      _sum: { tokens: true },
-    }),
-    prisma.membership.findFirst({
-      where: { userId, status: "ACTIVE", startedAt: { lte: at }, endsAt: { gt: at } },
-      orderBy: { endsAt: "desc" },
-      select: { id: true, endsAt: true },
-    }),
-  ]);
+  let usedTokens = 0;
+  let activeMember = null;
 
-  const usedTokens = Number(usedAgg?._sum?.tokens || 0);
+  try {
+    if (prisma.aIUsage?.aggregate) {
+      const usedAgg = await prisma.aIUsage.aggregate({
+        where: { userId, createdAt: { gte: from, lt: to } },
+        _sum: { tokens: true },
+      });
+      usedTokens = Number(usedAgg?._sum?.tokens || 0);
+    }
+  } catch {
+    usedTokens = 0;
+  }
+
+  try {
+    if (prisma.membership?.findFirst) {
+      activeMember = await prisma.membership.findFirst({
+        where: { userId, status: "ACTIVE", startedAt: { lte: at }, endsAt: { gt: at } },
+        orderBy: { endsAt: "desc" },
+        select: { id: true, endsAt: true },
+      });
+    }
+  } catch {
+    activeMember = null;
+  }
+
   const isMemberActive = Boolean(activeMember && activeMember.id);
-  const freeTokens = isMemberActive ? freeTokensPerMonth : 0;
+  const freeTokens = freeTokensPerMonth;
   const purchasedTokens = 0;
   const availableTokens = freeTokens;
   const remainingTokens = availableTokens - usedTokens;

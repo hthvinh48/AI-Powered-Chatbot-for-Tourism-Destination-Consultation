@@ -302,6 +302,7 @@
 .admin-main {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 24px;
 }
 
@@ -522,7 +523,8 @@
 }
 
 .admin-table-wrap {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   max-height: 62vh;
   border: 1px solid var(--admin-border);
   border-radius: 8px;
@@ -530,10 +532,11 @@
 
 .admin-table {
   width: 100%;
+  table-layout: auto;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 13px;
-  min-width: 760px;
+  min-width: 0;
 }
 
 .admin-table--sticky thead th {
@@ -554,6 +557,7 @@
   color: var(--admin-muted);
   font-weight: 700;
   padding: 0;
+  min-width: 0;
   border-bottom: 1px solid var(--admin-border);
 }
 
@@ -613,9 +617,21 @@
 
 .admin-table td {
   padding: 12px;
+  min-width: 0;
   border-bottom: 1px solid var(--admin-border);
   vertical-align: middle;
   background: transparent;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.admin-cell-ellipsis {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-table tbody tr:hover td {
@@ -739,7 +755,286 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+/* ── Admin billing ─────────────────────────────────────────────── */
+.admin-billing-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.admin-billing-header {
+  margin-bottom: 2px;
+}
+
+.admin-billing-hero {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-billing-hero-card {
+  min-height: 118px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-billing-hero-card--accent {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(77, 143, 247, 0.24), transparent 34%),
+    linear-gradient(135deg, var(--admin-surface), rgba(31, 55, 86, 0.72));
+  border-color: var(--admin-accent-border);
+}
+
+:root[data-theme='light'] .admin-billing-hero-card--accent {
+  background:
+    radial-gradient(circle at 10% 8%, rgba(47, 120, 238, 0.14), transparent 36%),
+    linear-gradient(135deg, #ffffff, #eef5ff);
+}
+
+.admin-billing-hero-card span,
+.admin-billing-hero-card small {
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.admin-billing-hero-card strong {
+  color: var(--admin-fg);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1;
+}
+
+.admin-billing-card {
+  padding: 18px;
+  overflow: visible;
+}
+
+.admin-billing-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-billing-card-head h3 {
+  margin: 0;
+  color: var(--admin-fg);
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.admin-billing-card-head p {
+  margin: 5px 0 0;
+  color: var(--admin-muted);
+  font-size: 13px;
+}
+
+.admin-billing-quota-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 560px;
+}
+
+.admin-billing-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 160px;
+}
+
+.admin-billing-field span {
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-billing-field--quota,
+.admin-billing-field--search {
+  flex: 1;
+  min-width: 240px;
+}
+
+.admin-billing-input {
+  width: 100%;
+  height: 42px;
+}
+
+.admin-billing-month-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px;
+  gap: 8px;
+}
+
+.admin-billing-month-picker .admin-select {
+  min-width: 0;
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--admin-muted) 50%),
+    linear-gradient(135deg, var(--admin-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 18px,
+    calc(100% - 11px) 18px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 30px;
+}
+
+.admin-billing-month-picker .admin-select:focus {
+  border-color: var(--admin-accent-border);
+  box-shadow: 0 0 0 3px var(--admin-accent-soft);
+}
+
+.admin-billing-apply {
+  height: 42px;
+  padding: 0 16px;
+}
+
+.admin-billing-filters {
+  display: grid;
+  grid-template-columns: minmax(150px, 180px) minmax(240px, 1fr) minmax(150px, 180px) minmax(150px, 180px);
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.admin-billing-card:nth-of-type(4) .admin-billing-filters {
+  grid-template-columns: minmax(150px, 180px) minmax(260px, 1fr);
+}
+
+.admin-billing-alert {
+  min-height: 42px;
+  border: 1px solid rgba(249, 115, 115, 0.42);
+  border-radius: 10px;
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-billing-table-wrap {
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.admin-billing-table {
+  table-layout: fixed;
+}
+
+.admin-billing-table th,
+.admin-billing-table td {
+  padding: 12px 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-billing-table thead th {
+  background: var(--admin-surface-raised);
+}
+
+.admin-billing-strong {
+  color: var(--admin-fg);
+  font-weight: 700;
+}
+
+.admin-billing-negative {
+  color: var(--admin-danger);
+  font-weight: 700;
+}
+
+.admin-billing-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 70px;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  padding: 0 10px;
+  color: var(--admin-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.admin-billing-status--paid {
+  color: var(--admin-success);
+  background: var(--admin-success-soft);
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.admin-billing-status--pending {
+  color: var(--admin-warning);
+  background: var(--admin-warning-soft);
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.admin-billing-status--failed {
+  color: var(--admin-danger);
+  background: var(--admin-danger-soft);
+  border-color: rgba(249, 115, 115, 0.35);
+}
+
+.admin-billing-pager {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.admin-billing-pager > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-row-actions .admin-role-select {
+  flex: 0 0 188px;
+  width: 188px;
+  min-width: 188px;
+  max-width: 188px;
+}
+
+.admin-row-actions .admin-btn {
+  flex-shrink: 0;
+}
+
+.admin-row-actions .admin-btn--sm {
+  min-width: 72px;
+}
+
+@media (max-width: 1240px) {
+  .admin-row-actions {
+    flex-wrap: wrap;
+  }
+
+  .admin-row-actions .admin-role-select {
+    flex: 1 1 160px;
+    min-width: 160px;
+    max-width: 100%;
+    width: 100%;
+  }
 }
 
 .admin-action-note {
@@ -756,10 +1051,13 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .admin-token-bar-bg {
-  width: 120px;
+  width: 100%;
+  max-width: 120px;
+  min-width: 64px;
   height: 6px;
   border-radius: 999px;
   background: var(--admin-hover);
@@ -776,6 +1074,7 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--admin-muted);
+  flex-shrink: 0;
 }
 
 .admin-inline-error {
@@ -1211,6 +1510,15 @@
   .admin-map-layout {
     grid-template-columns: 1fr;
   }
+
+  .admin-billing-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-billing-filters,
+  .admin-billing-card:nth-of-type(4) .admin-billing-filters {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1242,7 +1550,7 @@
   }
 
   .admin-table {
-    min-width: 680px;
+    min-width: 0;
   }
 
   .admin-table-controls {
@@ -1273,5 +1581,36 @@
 
   .admin-map-canvas {
     height: clamp(360px, 56vh, 520px);
+  }
+
+  .admin-billing-card {
+    padding: 14px;
+  }
+
+  .admin-billing-card-head,
+  .admin-billing-quota-row,
+  .admin-billing-pager {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-billing-field,
+  .admin-billing-field--quota,
+  .admin-billing-field--search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .admin-billing-filters,
+  .admin-billing-card:nth-of-type(4) .admin-billing-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-billing-table-wrap {
+    overflow-x: auto;
+  }
+
+  .admin-billing-table {
+    min-width: 760px;
   }
 }

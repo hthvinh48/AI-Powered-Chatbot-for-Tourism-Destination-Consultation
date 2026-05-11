@@ -19,6 +19,39 @@ function getAssistantDisplayText(content) {
   return text
 }
 
+function renderInlineMarkdown(text) {
+  return String(text || '')
+    .split(/(\*\*[^*]+?\*\*)/g)
+    .map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>
+      }
+      return part
+    })
+}
+
+function renderAssistantMessage(content) {
+  const text = getAssistantDisplayText(content)
+  const lines = String(text || '').split(/\r?\n/)
+
+  return (
+    <div className="chatMarkdown">
+      {lines.map((line, index) => {
+        if (!line.trim()) return <div className="chatMarkdownSpacer" key={`spacer-${index}`} />
+
+        return (
+          <div
+            className={`chatMarkdownLine ${/^\s*\d+\.\s/.test(line) ? 'chatMarkdownListLine' : ''}`}
+            key={`${line}-${index}`}
+          >
+            {renderInlineMarkdown(line)}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 const ChatPage = () => {
   const { t } = useI18n()
   const { id } = useParams()
@@ -123,7 +156,7 @@ const ChatPage = () => {
               <div className={`chatBubble ${isUser ? 'chatBubbleUser' : 'chatBubbleBot'}`} key={m.id}>
                 {isUser ? <div>{m.content}</div> : null}
                 {isTrip ? <TripPlanMessage chatId={chatId} content={m.content} savedTripKeys={savedTripKeys} /> : null}
-                {!isUser && !isTrip ? <div>{getAssistantDisplayText(m.content)}</div> : null}
+                {!isUser && !isTrip ? renderAssistantMessage(m.content) : null}
               </div>
             )
           })

@@ -25,6 +25,7 @@ const BillingPage = () => {
 
   const [summary, setSummary] = useState(null)
   const [loadingSummary, setLoadingSummary] = useState(true)
+  const [summaryError, setSummaryError] = useState('')
 
   const [membership, setMembership] = useState(null)
   const [loadingMembership, setLoadingMembership] = useState(true)
@@ -45,11 +46,14 @@ const BillingPage = () => {
 
   const loadSummary = useCallback(async () => {
     setLoadingSummary(true)
+    setSummaryError('')
     try {
       const res = await apiRequestBackend('/api/billing/summary')
       setSummary(res || null)
     } catch (err) {
-      notify.error(err?.message || t('billing.load_fail'))
+      const msg = err?.message || t('billing.load_fail')
+      setSummaryError(msg)
+      notify.error(msg)
       setSummary(null)
     } finally {
       setLoadingSummary(false)
@@ -125,6 +129,11 @@ const BillingPage = () => {
   }
 
   const memberEndsAtText = membership?.endsAt ? new Date(membership.endsAt).toLocaleString() : ''
+  const summaryNumber = (value) => {
+    if (loadingSummary) return '...'
+    if (summaryError) return '-'
+    return formatNumber(value ?? 0, lang)
+  }
 
   return (
     <div className="billingPage">
@@ -148,26 +157,33 @@ const BillingPage = () => {
         )}
       </header>
 
+      {summaryError ? (
+        <div className="billingInlineError">
+          <i className="ti ti-alert-circle" />
+          {summaryError}
+        </div>
+      ) : null}
+
       <section className="billingGrid">
         <article className="billingCard">
           <div className="billingLabel">{t('billing.used_all')}</div>
-          <div className="billingValue">{loadingSummary ? '…' : formatNumber(summary?.totalUsedTokens || 0, lang)}</div>
+          <div className="billingValue">{summaryNumber(summary?.totalUsedTokens)}</div>
         </article>
         <article className="billingCard">
           <div className="billingLabel">{t('billing.used_30d')}</div>
-          <div className="billingValue">{loadingSummary ? '…' : formatNumber(summary?.usedTokens30d || 0, lang)}</div>
+          <div className="billingValue">{summaryNumber(summary?.usedTokens30d)}</div>
         </article>
         <article className="billingCard">
           <div className="billingLabel">{t('billing.free_month')}</div>
-          <div className="billingValue">{loadingSummary ? '…' : formatNumber(summary?.freeTokensPerMonth || 0, lang)}</div>
+          <div className="billingValue">{summaryNumber(summary?.freeTokensPerMonth)}</div>
         </article>
         <article className="billingCard">
           <div className="billingLabel">{t('billing.used_month')}</div>
-          <div className="billingValue">{loadingSummary ? '…' : formatNumber(summary?.month?.usedTokens || 0, lang)}</div>
+          <div className="billingValue">{summaryNumber(summary?.month?.usedTokens)}</div>
         </article>
         <article className="billingCard">
           <div className="billingLabel">{t('billing.balance')}</div>
-          <div className="billingValue">{loadingSummary ? '…' : formatNumber(summary?.month?.remainingTokens || 0, lang)}</div>
+          <div className="billingValue">{summaryNumber(summary?.month?.remainingTokens ?? summary?.balanceTokens)}</div>
         </article>
       </section>
 

@@ -32,7 +32,6 @@ const AdminLayout = () => {
   const redirectUrl = encodeURIComponent(`${location.pathname}${location.search}${location.hash}`)
 
   const currentPageLabel = useMemo(() => {
-    if (location.pathname.startsWith('/admin/map')) return t('admin.map.nav')
     if (location.pathname.startsWith('/admin/users')) return t('admin.users')
     if (location.pathname.startsWith('/admin/tokens')) return t('admin.tokens')
     if (location.pathname.startsWith('/admin/billing')) return t('admin.billing.title')
@@ -93,16 +92,6 @@ const AdminLayout = () => {
           >
             <i className="ti ti-layout-dashboard" />
             {!collapsed ? <span>{t('admin.overview')}</span> : null}
-          </NavLink>
-
-          <NavLink
-            className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
-            to="/admin/map"
-            onClick={() => setMobileOpen(false)}
-            title={t('admin.map.nav')}
-          >
-            <i className="ti ti-map-2" />
-            {!collapsed ? <span>{t('admin.map.nav')}</span> : null}
           </NavLink>
 
           <NavLink

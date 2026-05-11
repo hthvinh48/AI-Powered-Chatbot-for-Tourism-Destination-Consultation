@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useI18n } from '../../lib/useI18n'
+import { TRIP_PLANS_CHANGED_EVENT } from '../../lib/tripPlanState'
 
 const GEO_CACHE_KEY = 'admin_trip_map_geo_cache_v1'
 const MAP_DEFAULT_CENTER = [16.047079, 108.20623]
@@ -264,7 +266,7 @@ function collectStops(tripPlan) {
     return deduped
 }
 
-const AdminTripMapPage = () => {
+const AdminTripMapPage = ({ userView = false }) => {
     const { t, lang } = useI18n()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
@@ -286,6 +288,15 @@ const AdminTripMapPage = () => {
     const geoBusyRef = useRef(false)
     const autoResolveKeyRef = useRef('')
 
+    const mapText = useCallback((suffix) => {
+        if (userView) {
+            const userKey = `user.map.${suffix}`
+            const userValue = t(userKey)
+            if (userValue !== userKey) return userValue
+        }
+        return t(`admin.map.${suffix}`)
+    }, [t, userView])
+
     useEffect(() => {
         coordsRef.current = coordsByQuery
     }, [coordsByQuery])
@@ -297,34 +308,25 @@ const AdminTripMapPage = () => {
             const res = await apiRequestBackend('/api/trip-plans?include=true&limit=100')
             setItems(Array.isArray(res?.items) ? res.items : [])
         } catch (err) {
-            setError(err?.message || t('admin.map.load_fail'))
+            setError(err?.message || mapText('load_fail'))
             setItems([])
         } finally {
             setLoading(false)
         }
-    }, [t])
+    }, [mapText])
 
     useEffect(() => {
         load()
     }, [load])
 
     useEffect(() => {
-        if (!mapElRef.current || mapRef.current) return
-        const map = L.map(mapElRef.current, { zoomControl: true }).setView(MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors',
-        }).addTo(map)
-
-        mapRef.current = map
-        layerGroupRef.current = L.layerGroup().addTo(map)
-
-        return () => {
-            map.remove()
-            mapRef.current = null
-            layerGroupRef.current = null
+        const onTripPlansChanged = () => {
+            load()
         }
-    }, [])
+
+        window.addEventListener(TRIP_PLANS_CHANGED_EVENT, onTripPlansChanged)
+        return () => window.removeEventListener(TRIP_PLANS_CHANGED_EVENT, onTripPlansChanged)
+    }, [load])
 
     const tripRecords = useMemo(() => {
         return items
@@ -382,6 +384,35 @@ const AdminTripMapPage = () => {
         () => filteredTrips.find((trip) => trip.id === selectedTripId) || null,
         [filteredTrips, selectedTripId],
     )
+    const showUserEmptyState = userView && !loading && !error && (items.length === 0 || tripRecords.length === 0)
+
+    useEffect(() => {
+        if (showUserEmptyState) {
+            if (mapRef.current) {
+                mapRef.current.remove()
+                mapRef.current = null
+                layerGroupRef.current = null
+                markerByStopIdRef.current = {}
+            }
+            return
+        }
+
+        if (!mapElRef.current || mapRef.current) return
+        const map = L.map(mapElRef.current, { zoomControl: true }).setView(MAP_DEFAULT_CENTER, MAP_DEFAULT_ZOOM)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors',
+        }).addTo(map)
+
+        mapRef.current = map
+        layerGroupRef.current = L.layerGroup().addTo(map)
+
+        return () => {
+            map.remove()
+            mapRef.current = null
+            layerGroupRef.current = null
+        }
+    }, [showUserEmptyState])
 
     const allStops = useMemo(
         () => (selectedTrip ? collectStops(selectedTrip.tripPlan) : []),
@@ -522,7 +553,7 @@ const AdminTripMapPage = () => {
                     setGeoProgress({ done, total: stopsToResolve.length })
                 }
             } catch (err) {
-                setGeoError(err?.message || t('admin.map.geocode_fail'))
+                setGeoError(err?.message || mapText('geocode_fail'))
             } finally {
                 setCoordsByQuery(nextCache)
                 saveGeocodeCache(nextCache)
@@ -530,7 +561,7 @@ const AdminTripMapPage = () => {
                 geoBusyRef.current = false
             }
         },
-        [coordsByQuery, t],
+        [coordsByQuery, mapText],
     )
 
     useEffect(() => {
@@ -621,7 +652,7 @@ const AdminTripMapPage = () => {
 
             const visitDayLabels = [...new Set(
                 stop.visits
-                    .map((visit) => (Number.isFinite(visit.day) ? `${t('admin.map.day_prefix')} ${visit.day}` : ''))
+                    .map((visit) => (Number.isFinite(visit.day) ? `${mapText('day_prefix')} ${visit.day}` : ''))
                     .filter(Boolean),
             )]
 
@@ -665,7 +696,7 @@ const AdminTripMapPage = () => {
             padding: [30, 30],
             maxZoom: 13,
         })
-    }, [mappableStops, markerStops, t])
+    }, [mappableStops, markerStops, mapText])
 
     const onResolveAll = async () => {
         const missing = filteredStops.filter((stop) => !getCachedCoordForStop(stop, coordsByQuery))
@@ -720,21 +751,55 @@ const AdminTripMapPage = () => {
     )
 
     return (
-        <div>
+        <div className={showUserEmptyState ? 'admin-trip-map-page admin-trip-map-page--empty' : 'admin-trip-map-page'}>
             <div className="admin-page-header">
                 <div>
-                    <h1 className="admin-page-title">{t('admin.map.title')}</h1>
-                    <p className="admin-page-subtitle">{t('admin.map.subtitle')}</p>
+                    <h1 className="admin-page-title">{mapText('title')}</h1>
+                    <p className="admin-page-subtitle">{mapText('subtitle')}</p>
                 </div>
-                <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
-                    <i className="ti ti-refresh" />
-                    {t('admin.refresh')}
-                </button>
+                {!showUserEmptyState ? (
+                    <button className="admin-btn admin-btn--ghost" type="button" onClick={load} disabled={loading}>
+                        <i className="ti ti-refresh" />
+                        {t('admin.refresh')}
+                    </button>
+                ) : null}
             </div>
 
             {error ? <div className="admin-inline-error admin-map-error">{t('common.error')}: {error}</div> : null}
 
-            <div className="admin-map-layout">
+            {showUserEmptyState ? (
+                <section className="admin-card user-trip-map-empty">
+                    <div className="user-trip-map-empty-icon">
+                        <i className="ti ti-map-route" />
+                    </div>
+                    <div className="user-trip-map-empty-copy">
+                        <h2>{mapText('empty_title')}</h2>
+                        <p>{mapText('empty_text')}</p>
+                    </div>
+                    <div className="user-trip-map-empty-steps">
+                        <div>
+                            <span>1</span>
+                            <p>{mapText('empty_step_1')}</p>
+                        </div>
+                        <div>
+                            <span>2</span>
+                            <p>{mapText('empty_step_2')}</p>
+                        </div>
+                        <div>
+                            <span>3</span>
+                            <p>{mapText('empty_step_3')}</p>
+                        </div>
+                    </div>
+                    <div className="user-trip-map-empty-actions">
+                        <Link className="admin-btn admin-btn--primary" to="/dashboard">
+                            <i className="ti ti-message-plus" />
+                            {mapText('empty_cta')}
+                        </Link>
+                    </div>
+                </section>
+            ) : null}
+
+            {!showUserEmptyState ? <div className="admin-map-layout">
                 <aside className="admin-card admin-map-sidebar">
                     <div className="admin-card-body">
                         <div className="admin-map-controls">
@@ -743,15 +808,15 @@ const AdminTripMapPage = () => {
                                 <input
                                     className="admin-input"
                                     value={search}
-                                    placeholder={t('admin.map.search_placeholder')}
+                                    placeholder={mapText('search_placeholder')}
                                     onChange={(e) => setSearch(e.target.value)}
                                 />
                             </div>
 
                             <div className="admin-filter-group">
                                 <div className="admin-map-label-row">
-                                    <label className="admin-filter-label">{t('admin.map.trip')}</label>
-                                    <div className="admin-map-field-hint">{t('admin.map.trip_hint')}</div>
+                                    <label className="admin-filter-label">{mapText('trip')}</label>
+                                    <div className="admin-map-field-hint">{mapText('trip_hint')}</div>
                                 </div>
                                 <select
                                     className="admin-select"
@@ -770,18 +835,18 @@ const AdminTripMapPage = () => {
                             </div>
 
                             <div className="admin-filter-group">
-                                <label className="admin-filter-label">{t('admin.map.day')}</label>
+                                <label className="admin-filter-label">{mapText('day')}</label>
                                 <select className="admin-select" value={selectedDay} onChange={(e) => setSelectedDay(e.target.value)}>
-                                    <option value="all">{t('admin.map.day_all')}</option>
+                                    <option value="all">{mapText('day_all')}</option>
                                     {availableDays.map((day) => (
-                                        <option key={day} value={day}>{`${t('admin.map.day_prefix')} ${day}`}</option>
+                                        <option key={day} value={day}>{`${mapText('day_prefix')} ${day}`}</option>
                                     ))}
                                 </select>
                             </div>
 
                             <button type="button" className="admin-btn admin-btn--primary" onClick={onResolveAll} disabled={geoLoading || filteredStops.length === 0}>
                                 <i className="ti ti-map-search" />
-                                {geoLoading ? `${geoProgress.done}/${geoProgress.total}` : t('admin.map.resolve_points')}
+                                {geoLoading ? `${geoProgress.done}/${geoProgress.total}` : mapText('resolve_points')}
                             </button>
 
                             <button
@@ -791,7 +856,7 @@ const AdminTripMapPage = () => {
                                 disabled={mappableStops.length === 0}
                             >
                                 <i className="ti ti-arrows-maximize" />
-                                {t('admin.map.reset_view')}
+                                {mapText('reset_view')}
                             </button>
                         </div>
 
@@ -799,22 +864,22 @@ const AdminTripMapPage = () => {
 
                         {selectedTrip ? (
                             <div className="admin-map-meta">
-                                <div className="admin-map-meta-title">{t('admin.map.meta_title')}</div>
+                                <div className="admin-map-meta-title">{mapText('meta_title')}</div>
                                 <div className="admin-map-meta-grid">
                                     <div className="admin-map-meta-item">
-                                        <span>{t('admin.map.trip_id')}</span>
+                                        <span>{mapText('trip_id')}</span>
                                         <b>#{selectedTrip.id}</b>
                                     </div>
                                     <div className="admin-map-meta-item">
-                                        <span>{t('admin.map.chat_id')}</span>
+                                        <span>{mapText('chat_id')}</span>
                                         <b>{selectedTrip.chatId ?? '-'}</b>
                                     </div>
                                     <div className="admin-map-meta-item">
-                                        <span>{t('admin.map.created_at')}</span>
+                                        <span>{mapText('created_at')}</span>
                                         <b>{formatDateTime(selectedTrip.createdAt, lang)}</b>
                                     </div>
                                     <div className="admin-map-meta-item">
-                                        <span>{t('admin.map.updated_at')}</span>
+                                        <span>{mapText('updated_at')}</span>
                                         <b>{formatDateTime(selectedTrip.updatedAt, lang)}</b>
                                     </div>
                                 </div>
@@ -823,15 +888,15 @@ const AdminTripMapPage = () => {
 
                         <div className="admin-map-summary">
                             <div className="admin-map-summary-item">
-                                <span>{t('admin.map.total_stops')}</span>
+                                <span>{mapText('total_stops')}</span>
                                 <b>{filteredStops.length}</b>
                             </div>
                             <div className="admin-map-summary-item">
-                                <span>{t('admin.map.mapped_stops')}</span>
+                                <span>{mapText('mapped_stops')}</span>
                                 <b>{mappableStops.length}</b>
                             </div>
                             <div className="admin-map-summary-item">
-                                <span>{t('admin.map.unmapped_stops')}</span>
+                                <span>{mapText('unmapped_stops')}</span>
                                 <b>{unmappedStops.length}</b>
                             </div>
                         </div>
@@ -839,13 +904,13 @@ const AdminTripMapPage = () => {
                         {unmappedStops.length > 0 ? (
                             <div className="admin-map-warning">
                                 <i className="ti ti-alert-triangle" />
-                                <span>{t('admin.map.unmapped_hint')}</span>
+                                <span>{mapText('unmapped_hint')}</span>
                             </div>
                         ) : null}
 
                         <div className="admin-map-stop-list">
                             {filteredStops.length === 0 ? (
-                                <div className="admin-empty-inline">{t('admin.map.no_stops')}</div>
+                                <div className="admin-empty-inline">{mapText('no_stops')}</div>
                             ) : (
                                 filteredStops.map((stop, index) => {
                                     const mapped = Boolean(getCachedCoordForStop(stop, coordsByQuery))
@@ -860,7 +925,7 @@ const AdminTripMapPage = () => {
                                             <div className="admin-map-stop-copy">
                                                 <div className="admin-map-stop-title">
                                                     {stop.name}
-                                                    {stop.day ? <span>{` • ${t('admin.map.day_prefix')} ${stop.day}`}</span> : null}
+                                                    {stop.day ? <span>{` • ${mapText('day_prefix')} ${stop.day}`}</span> : null}
                                                 </div>
                                                 <div className="admin-map-stop-meta">{stop.address || stop.query}</div>
                                             </div>
@@ -872,7 +937,7 @@ const AdminTripMapPage = () => {
 
                         {unmappedStops.length > 0 ? (
                             <div className="admin-map-unmapped">
-                                <div className="admin-map-unmapped-title">{t('admin.map.unmapped_list')}</div>
+                                <div className="admin-map-unmapped-title">{mapText('unmapped_list')}</div>
                                 <div className="admin-map-unmapped-list">
                                     {unmappedStops.map((stop, index) => {
                                         return (
@@ -896,7 +961,7 @@ const AdminTripMapPage = () => {
                         <div className="admin-map-canvas" ref={mapElRef} />
                     </div>
                 </section>
-            </div>
+            </div> : null}
         </div>
     )
 }

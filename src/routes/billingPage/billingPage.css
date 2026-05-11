@@ -67,6 +67,19 @@
   cursor: not-allowed;
 }
 
+.billingInlineError {
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ff8a8a;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .billingGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

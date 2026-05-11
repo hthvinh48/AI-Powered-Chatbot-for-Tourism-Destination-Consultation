@@ -66,7 +66,10 @@ function formatMoneyLike(value, lang) {
   if (!match) return raw
   const formatted = formatNumberString(match[1], lang)
   if (!formatted) return raw
-  return raw.replace(match[1], formatted)
+  const normalized = raw.replace(match[1], formatted)
+  return normalized
+    .replace(/(\d)([A-Za-zÂÀ-ỹ₫$€£¥])/g, '$1 $2')
+    .replace(/([A-Za-zÂÀ-ỹ₫$€£¥])(\d)/g, '$1 $2')
 }
 
 function safeUrl(value) {

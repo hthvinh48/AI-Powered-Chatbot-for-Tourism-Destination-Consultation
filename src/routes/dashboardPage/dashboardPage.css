@@ -2,21 +2,25 @@
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-  gap: 10px;
-  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
 }
 
 .dashboardHero {
   border: 1px solid var(--glass-border);
   background: linear-gradient(135deg, rgba(47, 120, 238, 0.14), rgba(26, 171, 142, 0.12));
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 16px 18px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+}
+
+.dashboardHero--chatStart {
+  flex-shrink: 0;
 }
 
 .dashboardHeroActions {
@@ -28,15 +32,16 @@
 }
 
 .dashboardHeroCopy h1 {
-  font-size: clamp(22px, 3.2vw, 30px);
+  font-size: clamp(24px, 3.2vw, 36px);
   font-weight: 800;
   color: var(--app-fg);
   margin-bottom: 6px;
+  line-height: 1.12;
 }
 
 .dashboardHeroCopy p {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   max-width: 56ch;
 }
@@ -67,12 +72,139 @@
 }
 
 .dashboardError {
+  flex-shrink: 0;
   border: 1px solid rgba(239, 68, 68, 0.4);
   background: rgba(239, 68, 68, 0.12);
   color: #f69090;
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 13px;
+}
+
+.dashboardChatStart {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--glass-border);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(47, 120, 238, 0.18), transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(26, 171, 142, 0.14), transparent 30%),
+    var(--surface-2);
+  border-radius: 14px;
+  padding: clamp(24px, 5vw, 56px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dashboardChatStartInner {
+  width: min(920px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.dashboardChatMark {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7db6ff;
+  background: rgba(47, 120, 238, 0.18);
+  border: 1px solid rgba(91, 165, 255, 0.24);
+  box-shadow: 0 16px 40px rgba(47, 120, 238, 0.14);
+}
+
+.dashboardChatMark i {
+  font-size: 28px;
+}
+
+.dashboardChatCopy h2 {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 46px);
+  line-height: 1.08;
+  letter-spacing: 0;
+  font-weight: 800;
+  color: var(--app-fg);
+}
+
+.dashboardChatCopy p {
+  margin: 10px auto 0;
+  max-width: 62ch;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.dashboardSuggestionGrid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.dashboardSuggestionCard {
+  min-height: 84px;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  background: rgba(10, 20, 34, 0.32);
+  color: var(--app-fg);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.dashboardSuggestionCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-hover-border);
+  background: var(--accent-hover-bg);
+}
+
+.dashboardSuggestionIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(47, 120, 238, 0.18);
+  color: #5ba5ff;
+}
+
+.dashboardSuggestionIcon i {
+  font-size: 18px;
+}
+
+.dashboardSuggestionText {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.dashboardSuggestionText strong {
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.dashboardSuggestionText small {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .dashboardStats {
@@ -211,6 +343,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
+  font-family: var(--font-ui-vi);
 }
 
 .dashboardPanelItemMeta {
@@ -268,6 +401,15 @@
   padding: 6px;
 }
 
+.dashboardComposer--chatStart {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  flex-shrink: 0;
+  border-radius: 14px;
+  padding: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
 .dashboardComposer form {
   display: flex;
   align-items: center;
@@ -280,7 +422,7 @@
 
 .dashboardComposer textarea {
   flex: 1;
-  min-height: 40px;
+  min-height: 46px;
   max-height: 110px;
   padding: 10px 12px;
   border: 1px solid var(--control-border);
@@ -289,6 +431,7 @@
   color: var(--app-fg);
   outline: none;
   resize: none;
+  font-family: var(--font-ui-vi);
 }
 
 .dashboardComposer textarea::placeholder {
@@ -304,8 +447,8 @@
 }
 
 .dashboardComposer button {
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 8px;
   border: 1px solid #2f78ee;
   background: #2f78ee;
@@ -359,27 +502,38 @@
 }
 
 .savedModal {
-  width: min(980px, 96vw);
-  max-height: 88vh;
-  overflow: auto;
-  border-radius: 12px;
+  width: min(1080px, 96vw);
+  max-height: 90vh;
+  overflow: hidden;
+  border-radius: 14px;
   border: 1px solid var(--glass-border);
-  background: var(--surface-2);
-  padding: 14px;
+  background: linear-gradient(180deg, rgba(24, 37, 56, 0.96), rgba(19, 31, 48, 0.96));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-ui-vi);
 }
 
 .savedTop {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  background: rgba(22, 34, 51, 0.96);
+  border: 1px solid var(--divider);
+  border-radius: 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--divider);
-  padding-bottom: 8px;
 }
 
 .savedTitle {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: 0;
 }
 
 .savedTopActions {
@@ -395,6 +549,8 @@
   background: var(--control-bg);
   color: var(--app-fg);
   padding: 0 12px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
 }
 
@@ -417,67 +573,183 @@
 
 .savedHint {
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--text-muted);
 }
 
 .savedList {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .savedItem {
-  border-top: 1px solid var(--divider);
-  padding-top: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 12px;
+  background: rgba(21, 35, 54, 0.74);
+  padding: 12px;
 }
 
 .savedItemTop {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .savedItemTitle {
   border: 0;
   background: transparent;
-  color: #5aa3ff;
-  font-size: 13px;
+  color: #73b0ff;
+  font-size: 20px;
+  line-height: 1.18;
   font-weight: 700;
   cursor: pointer;
   padding: 0;
-  margin-bottom: 8px;
+  margin: 0;
+  text-align: left;
+  max-width: min(70ch, 100%);
 }
 
 .savedItemTitle:hover {
-  text-decoration: underline;
+  color: #8bc0ff;
 }
 
 .savedItemDelete {
-  height: 30px;
+  height: 36px;
   border-radius: 8px;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  background: transparent;
-  color: #ef6f6f;
+  border: 1px solid rgba(239, 68, 68, 0.46);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ff8f8f;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 0 10px;
-  font-size: 12px;
+  padding: 0 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
 
 .savedItemDelete:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ffb2b2;
+}
+
+.savedItem .tripPlanCard {
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.savedItem .tripPlanResp {
+  font-size: 15px;
+  line-height: 1.68;
+}
+
+.savedItem .tripPlanTitle {
+  font-size: 33px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.savedItem .tripPlanChip {
+  height: 30px;
+  padding: 0 11px;
+  font-size: 12px;
+}
+
+.savedItem .tripPlanBtn {
+  height: 40px;
+  font-size: 14px;
+  padding: 0 14px;
+  border-radius: 10px;
+}
+
+:root[data-theme='light'] .savedOverlay {
+  background: rgba(15, 23, 42, 0.42);
+}
+
+:root[data-theme='light'] .savedModal {
+  background: #ffffff;
+  border-color: rgba(21, 36, 54, 0.12);
+  box-shadow: 0 22px 60px rgba(21, 36, 54, 0.18);
+}
+
+:root[data-theme='light'] .savedTop {
+  background: #ffffff;
+  border-color: rgba(21, 36, 54, 0.12);
+}
+
+:root[data-theme='light'] .savedItem {
+  background: #f8fbff;
+  border-color: rgba(21, 36, 54, 0.12);
+}
+
+:root[data-theme='light'] .savedItemTitle {
+  color: #2f78ee;
+}
+
+:root[data-theme='light'] .savedItemTitle:hover {
+  color: #1f5ec4;
+}
+
+:root[data-theme='light'] .savedItemDelete {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+:root[data-theme='light'] .savedItemDelete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #b91c1c;
+}
+
+:root[data-theme='light'] .dashboardHero {
+  background: linear-gradient(135deg, rgba(47, 120, 238, 0.12), rgba(26, 171, 142, 0.08));
+}
+
+:root[data-theme='light'] .dashboardChatStart {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(47, 120, 238, 0.12), transparent 32%),
+    radial-gradient(circle at 82% 18%, rgba(26, 171, 142, 0.1), transparent 30%),
+    #ffffff;
+}
+
+:root[data-theme='light'] .dashboardSuggestionCard {
+  background: #f8fbff;
+  border-color: rgba(21, 36, 54, 0.12);
+}
+
+:root[data-theme='light'] .dashboardSuggestionCard:hover {
+  background: #edf5ff;
+  border-color: rgba(47, 120, 238, 0.28);
+}
+
+:root[data-theme='light'] .dashboardComposer {
+  background: #ffffff;
+  border-color: rgba(21, 36, 54, 0.14);
+  box-shadow: 0 14px 36px rgba(21, 36, 54, 0.08);
+}
+
+:root[data-theme='light'] .dashboardComposer textarea {
+  background: #f4f8fd;
+  border-color: rgba(21, 36, 54, 0.14);
 }
 
 @media (max-width: 768px) {
   .dashboardPage {
     overflow: auto;
+    padding: 12px;
   }
 
   .dashboardHero {
@@ -504,5 +776,78 @@
 
   .dashboardQuickActions {
     grid-template-columns: 1fr;
+  }
+
+  .dashboardChatStart {
+    overflow: hidden;
+    padding: 22px 14px;
+  }
+
+  .dashboardChatStartInner {
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .dashboardChatMark {
+    width: 52px;
+    height: 52px;
+  }
+
+  .dashboardChatCopy h2 {
+    font-size: 28px;
+  }
+
+  .dashboardSuggestionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardSuggestionCard {
+    min-height: 82px;
+  }
+
+  .savedModal {
+    width: 100%;
+    max-height: 94vh;
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .savedTop {
+    padding: 9px 10px;
+  }
+
+  .savedTopActions {
+    gap: 6px;
+  }
+
+  .savedBtn {
+    font-size: 13px;
+  }
+
+  .savedItem {
+    padding: 10px;
+  }
+
+  .savedItemTop {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .savedItemTitle {
+    font-size: 18px;
+  }
+
+  .savedItemDelete {
+    align-self: flex-end;
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .savedItem .tripPlanResp {
+    font-size: 14px;
+  }
+
+  .savedItem .tripPlanTitle {
+    font-size: 24px;
   }
 }

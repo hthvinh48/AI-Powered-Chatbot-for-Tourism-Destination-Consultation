@@ -13,6 +13,12 @@ const USER_TABLE_SORT_MAP = {
   status: 'bannedAt',
 }
 
+const ROLE_OPTIONS = [
+  { value: 'USER', label: 'User' },
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'SUPER_ADMIN', label: 'Super admin' },
+]
+
 const AdminUsersPage = () => {
   const me = useMemo(() => getBackendAuth()?.user || null, [])
   const canManageRoles = me?.role === 'SUPER_ADMIN'
@@ -172,15 +178,15 @@ const AdminUsersPage = () => {
       key: 'username',
       header: t('admin.table.username'),
       sortable: true,
-      minWidth: 160,
-      render: (u) => u.username,
+      minWidth: 130,
+      render: (u) => <span className="admin-cell-ellipsis">{u.username}</span>,
     },
     {
       key: 'email',
       header: t('admin.table.email'),
       sortable: true,
-      minWidth: 240,
-      render: (u) => u.email,
+      minWidth: 190,
+      render: (u) => <span className="admin-cell-ellipsis">{u.email}</span>,
     },
     {
       key: 'role',
@@ -212,8 +218,8 @@ const AdminUsersPage = () => {
       key: 'actions',
       header: t('admin.table.actions'),
       sortable: false,
-      minWidth: 360,
-      width: 390,
+      minWidth: 300,
+      width: 340,
       render: (u) => {
         const actorRole = me?.role
         const canBanThisUser =
@@ -223,7 +229,6 @@ const AdminUsersPage = () => {
           <div className="admin-row-actions">
             <select
               className="admin-role-select"
-              style={{ maxWidth: 200 }}
               value={pendingRoleById[u.id] ?? u.role}
               disabled={!canManageRoles || savingId === u.id}
               onChange={(e) =>
@@ -231,9 +236,11 @@ const AdminUsersPage = () => {
               }
               aria-label={`Change role for ${u.email}`}
             >
-              <option value="USER">USER</option>
-              <option value="ADMIN">ADMIN</option>
-              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+              {ROLE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
             {canManageRoles ? (
               <button
@@ -320,9 +327,11 @@ const AdminUsersPage = () => {
                 onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
               >
                 <option value="">{t('admin.all')}</option>
-                <option value="USER">USER</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+                {ROLE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
               </select>
             </div>
 
