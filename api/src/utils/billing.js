@@ -18,7 +18,10 @@ function nextMonth(d) {
 
 async function getFreeTokensPerMonth() {
   try {
-    const row = await prisma.appSetting.findUnique({ where: { key: SETTING_KEY_FREE_TOKENS }, select: { value: true } });
+    const row = await prisma.appSetting.findUnique({
+      where: { key: SETTING_KEY_FREE_TOKENS },
+      select: { value: true },
+    });
     const parsed = row ? Number.parseInt(String(row.value), 10) : NaN;
     if (Number.isFinite(parsed) && parsed >= 0) return parsed;
   } catch {
@@ -29,7 +32,8 @@ async function getFreeTokensPerMonth() {
 
 async function setFreeTokensPerMonth(value) {
   const n = Number.parseInt(String(value ?? ""), 10);
-  if (!Number.isFinite(n) || n < 0) throw new Error("Invalid free tokens value");
+  if (!Number.isFinite(n) || n < 0)
+    throw new Error("Invalid free tokens value");
   await prisma.appSetting.upsert({
     where: { key: SETTING_KEY_FREE_TOKENS },
     create: { key: SETTING_KEY_FREE_TOKENS, value: String(n) },
@@ -63,7 +67,12 @@ async function getUserTokenLedger(userId, at = new Date()) {
   try {
     if (prisma.membership?.findFirst) {
       activeMember = await prisma.membership.findFirst({
-        where: { userId, status: "ACTIVE", startedAt: { lte: at }, endsAt: { gt: at } },
+        where: {
+          userId,
+          status: "ACTIVE",
+          startedAt: { lte: at },
+          endsAt: { gt: at },
+        },
         orderBy: { endsAt: "desc" },
         select: { id: true, endsAt: true },
       });
@@ -75,14 +84,17 @@ async function getUserTokenLedger(userId, at = new Date()) {
   const isMemberActive = Boolean(activeMember && activeMember.id);
   const freeTokens = freeTokensPerMonth;
   const purchasedTokens = 0;
-  const availableTokens = freeTokens;
+  // Nếu có active membership, set availableTokens to unlimited (very large number)
+  const availableTokens = isMemberActive ? 100000000 : freeTokens;
   const remainingTokens = availableTokens - usedTokens;
 
   return {
     monthStart: from.toISOString(),
     monthEnd: to.toISOString(),
     memberActive: isMemberActive,
-    membershipEndsAt: activeMember?.endsAt ? new Date(activeMember.endsAt).toISOString() : null,
+    membershipEndsAt: activeMember?.endsAt
+      ? new Date(activeMember.endsAt).toISOString()
+      : null,
     freeTokens,
     purchasedTokens,
     usedTokens,

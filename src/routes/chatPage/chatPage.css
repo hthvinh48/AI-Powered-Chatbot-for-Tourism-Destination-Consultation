@@ -6,6 +6,14 @@
   overflow: hidden;
 }
 
+.component-container {
+  padding: 16px;
+  background: var(--surface-1);
+  border-top: 1px solid var(--glass-border);
+  max-height: 50%;
+  overflow-y: auto;
+}
+
 .chatThread {
   flex: 1;
   min-height: 0;

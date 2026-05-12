@@ -8,6 +8,7 @@ import { extractJsonFromText, hasTripPlanJson, safeJsonParse } from '../../lib/t
 import { useI18n } from '../../lib/useI18n'
 import { TRIP_PLANS_CHANGED_EVENT, createTripPlanKeyFromSavedItem } from '../../lib/tripPlanState'
 import { BACKEND_AUTH_CHANGED_EVENT } from '../../lib/backendAuth'
+import ComponentRenderer from '../../components/formInputs/ComponentRenderer'
 
 function getAssistantDisplayText(content) {
   const text = String(content || '')
@@ -61,7 +62,9 @@ const ChatPage = () => {
   const [error, setError] = useState('')
   const [thinking, setThinking] = useState(false)
   const [savedTripKeys, setSavedTripKeys] = useState(() => new Set())
+  const [lastAssistantMessage, setLastAssistantMessage] = useState(null)
   const endRef = useRef(null)
+  const promptRef = useRef(null)
 
   const scrollToEnd = useCallback(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
@@ -139,7 +142,31 @@ const ChatPage = () => {
 
   const appendMessages = useCallback((newMessages) => {
     if (!Array.isArray(newMessages) || newMessages.length === 0) return
+    
+    // Track last assistant message for ComponentRenderer
+    const lastAssistant = [...newMessages].reverse().find(m => String(m?.role || '').toLowerCase() === 'assistant')
+    if (lastAssistant) {
+      setLastAssistantMessage(lastAssistant)
+    }
+    
     setMessages((prev) => [...prev, ...newMessages])
+  }, [])
+
+  const handleComponentSubmit = useCallback((formData) => {
+    // Format: "fieldName: value"
+    const entries = Object.entries(formData)
+      .map(([key, val]) => `${key}: ${val}`)
+      .join('\n')
+    
+    // Clear component display
+    setLastAssistantMessage(null)
+
+    // Fill NewPrompt with the collected fields (and submit immediately).
+    promptRef.current?.setText?.(entries, { submit: true })
+  }, [])
+
+  const handleComponentCancel = useCallback(() => {
+    setLastAssistantMessage(null)
   }, [])
 
   return (
@@ -166,7 +193,17 @@ const ChatPage = () => {
         <div ref={endRef} />
       </div>
 
-      <NewPrompt chatId={chatId} onNewMessages={appendMessages} onPendingChange={setThinking} />
+      {lastAssistantMessage && (
+        <div className="component-container">
+          <ComponentRenderer
+            message={lastAssistantMessage.content}
+            onComponentSubmit={handleComponentSubmit}
+            onCancel={handleComponentCancel}
+          />
+        </div>
+      )}
+
+      <NewPrompt ref={promptRef} chatId={chatId} onNewMessages={appendMessages} onPendingChange={setThinking} />
     </div>
   )
 }

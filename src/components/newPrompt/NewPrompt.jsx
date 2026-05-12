@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import './newPrompt.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useNotify } from '../notifications/useNotify'
@@ -57,12 +57,13 @@ function parsePlanInput(text) {
   }
 }
 
-const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
+const NewPrompt = forwardRef(({ chatId, onNewMessages, onPendingChange }, ref) => {
   const notify = useNotify()
   const { t, lang } = useI18n()
   const [text, setText] = useState('')
   const [pending, setPending] = useState(false)
   const textareaRef = useRef(null)
+  const formRef = useRef(null)
   const submittingRef = useRef(false)
   const planInput = useMemo(() => parsePlanInput(text), [text])
 
@@ -75,6 +76,24 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
       el.setSelectionRange(pos, pos)
     })
   }, [])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      setText: (nextText, options = {}) => {
+        const shouldSubmit = Boolean(options?.submit)
+        setText(String(nextText || ''))
+        focusTextarea()
+        if (shouldSubmit) {
+          window.setTimeout(() => {
+            formRef.current?.requestSubmit?.()
+          }, 0)
+        }
+      },
+      focus: () => focusTextarea(),
+    }),
+    [focusTextarea],
+  )
 
   const submit = async (e) => {
     e.preventDefault()
@@ -157,7 +176,12 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
 
   return (
     <div className="newPrompt">
-      <form className={`newForm ${pending ? 'is-pending' : ''}`} onSubmit={submit} aria-busy={pending}>
+      <form
+        ref={formRef}
+        className={`newForm ${pending ? 'is-pending' : ''}`}
+        onSubmit={submit}
+        aria-busy={pending}
+      >
         <textarea
           ref={textareaRef}
           name="text"
@@ -184,6 +208,8 @@ const NewPrompt = ({ chatId, onNewMessages, onPendingChange }) => {
       {pending ? <div className="newPromptStatus">{t('prompt.sending')}</div> : null}
     </div>
   )
-}
+})
+
+NewPrompt.displayName = 'NewPrompt'
 
 export default NewPrompt

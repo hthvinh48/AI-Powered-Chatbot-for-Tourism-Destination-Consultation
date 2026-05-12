@@ -58,12 +58,16 @@ function stripInternalGuide(value) {
   const raw = String(value || "");
   if (!raw) return "";
   if (!raw.includes(QUICK_GUIDE_TOKEN)) return raw.trim();
-  return raw.replace(/\s*\[\[ASSISTANT_GUIDE_QUICK_SUGGESTION\]\][\s\S]*$/i, "").trim();
+  return raw
+    .replace(/\s*\[\[ASSISTANT_GUIDE_QUICK_SUGGESTION\]\][\s\S]*$/i, "")
+    .trim();
 }
 
 function looksLikeStructuredPlanInput(value) {
   const text = String(value || "");
-  return /(^|\n)\s*(origin|destination|duration|budget|group_size|interests|preferences)\s*[:=]/i.test(text);
+  return /(^|\n)\s*(origin|destination|duration|budget|group_size|interests|preferences)\s*[:=]/i.test(
+    text,
+  );
 }
 
 function isQuickSuggestionIntent(value) {
@@ -111,29 +115,34 @@ function getLastUserMessage(messages) {
 }
 
 const SYSTEM_PROMPT = `
-You are an expert AI Trip Planner assistant.
+You are an expert AI Trip Planner assistant. 
 
-First decide intent:
-1) QUICK RECOMMENDATION intent
-2) FULL TRIP PLAN intent
+### PHASE 1: INTENT CLASSIFICATION
+1) QUICK RECOMMENDATION: User asks for generic advice (e.g., "nên đi đâu ở Hà Nội").
+   - Action: Reply in plain text. Friendly, concise. No JSON.
+2) FULL TRIP PLAN: User provides specific trip details or asks for a "lịch trình/kế hoạch".
+   - Action: Follow the Data Collection & JSON Generation rules below.
 
-QUICK RECOMMENDATION intent examples:
-- "goi y dia diem du lich o Ha Noi"
-- "nen di dau o Da Nang"
-- "recommend places in HCMC"
+### PHASE 2: DATA COLLECTION (For Full Trip Plan)
+- Scan for 7 fields: [Điểm khởi hành], [Điểm đến], [Số người], [Ngân sách], [Số ngày], [Sở thích], [Yêu cầu đặc biệt].
+- Skip questions for fields already provided. Ask only ONE missing field at a time.
+- If user says "Ok", "Hợp lý", or "Tiến hành đi", use expert assumptions to fill missing fields and GEN JSON immediately.
+- Final question must end with the appropriate UI Tag (e.g., [Số ngày] Component: tripDuration).
 
-For QUICK RECOMMENDATION intent:
-- Reply directly with useful suggestions.
-- Keep it concise, friendly, practical.
-- Do NOT require mandatory full-plan fields (origin/group size/budget/days) when user only asks quick suggestions.
-- If budget is unknown, suggest options by budget level (budget / medium / premium).
-- Return plain text only (no JSON required).
+### PHASE 3: JSON GENERATION RULES (STRICT)
+Only when generating the JSON, you MUST follow these "Anti-Empty" rules:
+1. NO SHORTCUTS: FORBIDDEN from using "//..." or "Similar to Day X". Every single day from 1 to N must be fully detailed.
+2. FULL DAY DENSITY: Each day MUST have 4-5 activity objects covering:
+   - Morning: 01 Breakfast + 01 Sightseeing.
+   - Afternoon: 01 Lunch + 01 Sightseeing + 01 Cafe/Photo-op.
+   - Evening: 01 Dinner + 01 Night activity.
+3. ACTIVITY OBJECTS: Every activity (including meals) MUST be a full object with coordinates, address, and image_url.
+4. ACCOMMODATION: For trips >= 5 days, provide 2-3 different hotels in the "hotels" array to optimize travel.
+5. COMPONENT TAG: The final JSON MUST be preceded by "Component: final".
 
-FULL TRIP PLAN intent:
-- User explicitly asks for complete itinerary OR provides structured planning fields.
-- In this mode, output JSON with exact shape:
+### PHASE 4: OUTPUT SCHEMA (JSON)
 {
-  "resp": "string",
+  "resp": "string (Summary of the plan)",
   "trip_plan": {
     "destination": "string",
     "duration": "string",
@@ -143,7 +152,7 @@ FULL TRIP PLAN intent:
     "currency": "VND",
     "total_estimated_cost": "string",
     "hotels": [ { "hotel_name": "string", "hotel_address": "string", "price_per_night": "string", "hotel_image_url": "string", "geo_coordinates": { "latitude": number, "longitude": number }, "rating": number, "description": "string" } ],
-    "places_to_visit": "Array of all place objects mentioned in itinerary",
+    "places_to_visit": "Array of objects",
     "itinerary": [
       {
         "day": number,
@@ -166,14 +175,10 @@ FULL TRIP PLAN intent:
   }
 }
 
-Vietnamese wording preference:
-- "origin" => "diem khoi hanh" or "diem xuat phat"
-- avoid translating it as "nguon goc"
-- If you ask follow-up in Vietnamese, use this exact friendly label set:
-  [Điểm khởi hành], [Điểm đến], [Số người], [Ngân sách], [Số ngày], [Sở thích], [Yêu cầu đặc biệt]
-
-Language:
-- Use Vietnamese for Vietnamese input.
+### LANGUAGE & WORDING
+- Vietnamese input => Vietnamese output.
+- "origin" => "Điểm xuất phát".
+- Friendly, professional tone.
 `;
 
 async function generateTravelResponse(messages, options = {}) {
@@ -186,11 +191,16 @@ async function generateTravelResponse(messages, options = {}) {
       : [];
 
     const lastUser = stripInternalGuide(getLastUserMessage(safeMessages));
-    const guide = String(options?.guide || "").trim().toLowerCase();
+    const guide = String(options?.guide || "")
+      .trim()
+      .toLowerCase();
     const quickByGuide = guide === "quick_suggestion";
-    const quickByToken = String(getLastUserMessage(messages)).includes(QUICK_GUIDE_TOKEN);
+    const quickByToken = String(getLastUserMessage(messages)).includes(
+      QUICK_GUIDE_TOKEN,
+    );
     const quickByHeuristic =
-      !looksLikeStructuredPlanInput(lastUser) && isQuickSuggestionIntent(lastUser);
+      !looksLikeStructuredPlanInput(lastUser) &&
+      isQuickSuggestionIntent(lastUser);
     const isQuickMode = quickByGuide || quickByToken || quickByHeuristic;
 
     const extraSystemHint = isQuickMode
