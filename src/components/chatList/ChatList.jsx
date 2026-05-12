@@ -34,6 +34,7 @@ const ChatList = () => {
   const isContactRoute = location.pathname === '/contact'
   const isBillingRoute = location.pathname === '/billing'
   const isTripMapRoute = location.pathname === '/dashboard/trip-map'
+  const isNewChatRoute = location.pathname === '/dashboard'
 
   const load = useCallback(async () => {
     const res = await apiRequestBackend('/api/chat')
@@ -142,7 +143,11 @@ const ChatList = () => {
       <div className="chatListScroll">
         <div className="chatListSection">
           <span className="chatListTitle">{t('menu.dashboard')}</span>
-          <button type="button" className="chatListActionBtn chatListActionBtn--primary" onClick={createChat}>
+          <button
+            type="button"
+            className={`chatListActionBtn chatListActionBtn--primary ${isNewChatRoute ? 'active' : ''}`}
+            onClick={createChat}
+          >
             <i className="ti ti-plus" />
             {t('menu.create_chat')}
           </button>
@@ -165,6 +170,10 @@ const ChatList = () => {
             <i className="ti ti-bookmarks" />
             {t('trip.saved_plans')}
           </button>
+          <Link className={`chatListActionBtn chatListActionBtn--map ${isTripMapRoute ? 'active' : ''}`} to="/dashboard/trip-map">
+            <i className="ti ti-map-2" />
+            {t('menu.trip_map')}
+          </Link>
         </div>
 
         <div className="chatListDivider" />
@@ -207,10 +216,6 @@ const ChatList = () => {
           <Link className={`chatListNavLink ${isExploreRoute ? 'active' : ''}`} to="/explore">
             <i className="ti ti-compass" />
             {t('menu.explore')}
-          </Link>
-          <Link className={`chatListNavLink ${isTripMapRoute ? 'active' : ''}`} to="/dashboard/trip-map">
-            <i className="ti ti-map-2" />
-            {t('menu.trip_map')}
           </Link>
           <Link className={`chatListNavLink ${isBillingRoute ? 'active' : ''}`} to="/billing">
             <i className="ti ti-credit-card" />

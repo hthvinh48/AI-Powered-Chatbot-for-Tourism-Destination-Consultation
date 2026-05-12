@@ -49,18 +49,48 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.chatListActionBtn {
+  text-decoration: none;
+}
+
 .chatListActionBtn:hover,
 .chatListNavLink:hover {
   background: var(--hover-bg);
 }
 
 .chatListActionBtn--primary {
-  border-color: rgba(47, 120, 238, 0.38);
+  border-color: transparent;
+  background: transparent;
+}
+
+.chatListActionBtn--primary:hover,
+.chatListActionBtn--primary:focus-visible {
+  border-color: rgba(47, 120, 238, 0.28);
+  background: rgba(47, 120, 238, 0.14);
+}
+
+.chatListActionBtn--primary.active {
+  border-color: rgba(47, 120, 238, 0.42);
   background: rgba(47, 120, 238, 0.16);
 }
 
-.chatListActionBtn--primary:hover {
-  background: rgba(47, 120, 238, 0.24);
+.chatListActionBtn--primary:active {
+  transform: translateY(1px);
+}
+
+.chatListActionBtn--map {
+  border-color: transparent;
+  background: transparent;
+}
+
+.chatListActionBtn--map:hover {
+  border-color: rgba(47, 120, 238, 0.24);
+  background: var(--hover-bg);
+}
+
+.chatListActionBtn--map.active {
+  border-color: rgba(47, 120, 238, 0.42);
+  background: rgba(47, 120, 238, 0.16);
 }
 
 .chatListItems {
@@ -162,6 +192,10 @@
 
 .chatListSection--links .chatListNavLink {
   text-decoration: none;
+}
+
+.chatListSection--links {
+  margin-top: auto;
 }
 
 .chatListSection--links .chatListNavLink.active {
