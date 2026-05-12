@@ -210,6 +210,4 @@ const NewPrompt = forwardRef(({ chatId, onNewMessages, onPendingChange }, ref) =
   )
 })
 
-NewPrompt.displayName = 'NewPrompt'
-
 export default NewPrompt
