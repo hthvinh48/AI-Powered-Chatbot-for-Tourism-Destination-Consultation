@@ -37,10 +37,6 @@ exports.getSummary = async (req, res) => {
       where: { userId, createdAt: { gte: since7d } },
       _sum: { tokens: true },
     }),
-    prisma.tokenPurchase.aggregate({
-      where: { userId, status: "PAID" },
-      _sum: { tokens: true },
-    }),
   ]);
 
   const totalUsedTokens = Number(usedAll?._sum?.tokens || 0);

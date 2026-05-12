@@ -167,7 +167,6 @@ exports.listInvoices = async (req, res) => {
     ...(q
       ? {
           OR: [
-            { number: { contains: q } },
             { user: { email: { contains: q } } },
             { user: { name: { contains: q } } },
           ],
