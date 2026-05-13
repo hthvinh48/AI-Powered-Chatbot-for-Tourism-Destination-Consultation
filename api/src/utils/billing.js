@@ -50,6 +50,7 @@ async function getUserTokenLedger(userId, at = new Date()) {
   const freeTokensPerMonth = await getFreeTokensPerMonth();
 
   let usedTokens = 0;
+  let purchasedTokens = 0;
   let activeMember = null;
 
   try {
@@ -62,6 +63,18 @@ async function getUserTokenLedger(userId, at = new Date()) {
     }
   } catch {
     usedTokens = 0;
+  }
+
+  try {
+    if (prisma.invoice?.aggregate) {
+      const purchasedAgg = await prisma.invoice.aggregate({
+        where: { userId, tokens: { gt: 0 }, status: "PAID" },
+        _sum: { tokens: true },
+      });
+      purchasedTokens = Number(purchasedAgg?._sum?.tokens || 0);
+    }
+  } catch {
+    purchasedTokens = 0;
   }
 
   try {
@@ -83,10 +96,9 @@ async function getUserTokenLedger(userId, at = new Date()) {
 
   const isMemberActive = Boolean(activeMember && activeMember.id);
   const freeTokens = freeTokensPerMonth;
-  const purchasedTokens = 0;
-  // Nếu có active membership, set availableTokens to unlimited (very large number)
-  const availableTokens = isMemberActive ? 100000000 : freeTokens;
-  const remainingTokens = availableTokens - usedTokens;
+  purchasedTokens = Number(purchasedTokens || 0);
+  const availableTokens = isMemberActive ? null : freeTokens + purchasedTokens;
+  const remainingTokens = isMemberActive ? null : availableTokens - usedTokens;
 
   return {
     monthStart: from.toISOString(),

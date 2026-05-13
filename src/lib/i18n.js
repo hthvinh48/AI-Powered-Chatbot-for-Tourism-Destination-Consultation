@@ -33,9 +33,11 @@ const DICT = {
     "home.chat_preview_label_2": "TrAveI route preview",
     "home.chat_preview_title_2": "Smart route note",
     "home.chat.user": "I have 5M VND for a 3-day beach trip.",
-    "home.chat.bot": "Great. I can suggest destinations, hotels, food, and a day-by-day plan.",
+    "home.chat.bot":
+      "Great. I can suggest destinations, hotels, food, and a day-by-day plan.",
     "home.chat.user_followup": "Prefer local food and a relaxed pace.",
-    "home.chat.bot_followup": "Done. I will balance beaches, seafood, cafes, and travel time.",
+    "home.chat.bot_followup":
+      "Done. I will balance beaches, seafood, cafes, and travel time.",
     "home.highlight.plan.title": "1. Tell us your trip idea",
     "home.highlight.plan.text":
       "Start with a destination, budget, dates, group size, or simply ask where to go.",
@@ -80,11 +82,14 @@ const DICT = {
       "Tell TrAvel your destination, budget, travel dates, group size, or the kind of experience you want. You can also start from one of these ideas.",
     "dashboard.suggestions_label": "Trip prompt suggestions",
     "dashboard.suggestion.plan_title": "Build a full itinerary",
-    "dashboard.suggestion.plan_prompt": "Plan a 3-day trip to Da Nang for 2 people with hotels, food, and places to visit.",
+    "dashboard.suggestion.plan_prompt":
+      "Plan a 3-day trip to Da Nang for 2 people with hotels, food, and places to visit.",
     "dashboard.suggestion.budget_title": "Plan by budget",
-    "dashboard.suggestion.budget_prompt": "I have 5 million VND for a 2-day trip. Suggest a realistic destination and itinerary.",
+    "dashboard.suggestion.budget_prompt":
+      "I have 5 million VND for a 2-day trip. Suggest a realistic destination and itinerary.",
     "dashboard.suggestion.food_title": "Find local food spots",
-    "dashboard.suggestion.food_prompt": "Suggest local food and sightseeing spots in Hanoi for one day.",
+    "dashboard.suggestion.food_prompt":
+      "Suggest local food and sightseeing spots in Hanoi for one day.",
     "dashboard.suggestion.inspire_title": "Inspire me",
 
     "billing.title": "Membership Plan",
@@ -95,6 +100,7 @@ const DICT = {
     "billing.free_month": "Free tokens / month",
     "billing.purchased": "Tokens purchased",
     "billing.balance": "Token balance",
+    "billing.unlimited": "Unlimited",
     "billing.invoices": "Invoices",
     "billing.join": "Upgrade to VIP ($2/month)",
     "billing.member_active": "VIP membership active",
@@ -261,10 +267,13 @@ const DICT = {
     "admin.map.subtitle":
       "Visualize saved itineraries on map for quick admin review.",
     "user.map.title": "Trip map overview",
-    "user.map.subtitle": "Visualize your saved itineraries on the map for quick review.",
+    "user.map.subtitle":
+      "Visualize your saved itineraries on the map for quick review.",
     "user.map.empty_title": "No saved trip plans yet",
-    "user.map.empty_text": "Create a trip plan in chat, then save it to see your stops, route, and travel days on this map.",
-    "user.map.empty_step_1": "Start a chat and ask TrAvel to build an itinerary.",
+    "user.map.empty_text":
+      "Create a trip plan in chat, then save it to see your stops, route, and travel days on this map.",
+    "user.map.empty_step_1":
+      "Start a chat and ask TrAvel to build an itinerary.",
     "user.map.empty_step_2": "Review the generated trip plan and save it.",
     "user.map.empty_step_3": "Open this map again to view the full route.",
     "user.map.empty_cta": "Create a trip plan",
@@ -363,9 +372,11 @@ const DICT = {
     "home.chat_preview_label_2": "Xem trước gợi ý lộ trình TrAveI",
     "home.chat_preview_title_2": "Gợi ý lộ trình nhanh",
     "home.chat.user": "Tôi có 5 triệu cho chuyến biển 3 ngày.",
-    "home.chat.bot": "Tuyệt. Mình có thể gợi ý điểm đến, khách sạn, món ăn và lịch trình từng ngày.",
+    "home.chat.bot":
+      "Tuyệt. Mình có thể gợi ý điểm đến, khách sạn, món ăn và lịch trình từng ngày.",
     "home.chat.user_followup": "Ưu tiên món địa phương và lịch đi nhẹ.",
-    "home.chat.bot_followup": "Được. Mình sẽ cân bằng biển, hải sản, quán cà phê và thời gian di chuyển.",
+    "home.chat.bot_followup":
+      "Được. Mình sẽ cân bằng biển, hải sản, quán cà phê và thời gian di chuyển.",
     "home.highlight.plan.title": "1. Nói ý tưởng chuyến đi",
     "home.highlight.plan.text":
       "Bắt đầu bằng điểm đến, ngân sách, ngày đi, nhóm đi cùng hoặc hỏi TrAveI nên đi đâu.",
@@ -410,11 +421,14 @@ const DICT = {
       "Hãy cho TrAvel biết điểm đến, ngân sách, số ngày, nhóm đi cùng hoặc kiểu trải nghiệm bạn muốn. Bạn cũng có thể bắt đầu nhanh bằng một gợi ý bên dưới.",
     "dashboard.suggestions_label": "Gợi ý câu hỏi lập lịch trình",
     "dashboard.suggestion.plan_title": "Tạo lịch trình trọn gói",
-    "dashboard.suggestion.plan_prompt": "Lập lịch trình 3 ngày ở Đà Nẵng cho 2 người, có khách sạn, món ăn và địa điểm tham quan.",
+    "dashboard.suggestion.plan_prompt":
+      "Lập lịch trình 3 ngày ở Đà Nẵng cho 2 người, có khách sạn, món ăn và địa điểm tham quan.",
     "dashboard.suggestion.budget_title": "Lên kế hoạch theo ngân sách",
-    "dashboard.suggestion.budget_prompt": "Tôi có 5 triệu cho chuyến đi 2 ngày. Hãy gợi ý điểm đến và lịch trình thực tế.",
+    "dashboard.suggestion.budget_prompt":
+      "Tôi có 5 triệu cho chuyến đi 2 ngày. Hãy gợi ý điểm đến và lịch trình thực tế.",
     "dashboard.suggestion.food_title": "Gợi ý ăn uống địa phương",
-    "dashboard.suggestion.food_prompt": "Gợi ý địa điểm ăn uống và tham quan ở Hà Nội trong 1 ngày.",
+    "dashboard.suggestion.food_prompt":
+      "Gợi ý địa điểm ăn uống và tham quan ở Hà Nội trong 1 ngày.",
     "dashboard.suggestion.inspire_title": "Gợi ý cho tôi",
 
     "billing.title": "Gói thành viên",
@@ -590,10 +604,13 @@ const DICT = {
     "admin.map.subtitle":
       "Hiển thị trip đã lưu trên bản đồ để quản trị theo dõi nhanh.",
     "user.map.title": "Bản đồ lịch trình",
-    "user.map.subtitle": "Hiển thị các chuyến đi đã lưu của bạn trên bản đồ để theo dõi nhanh.",
+    "user.map.subtitle":
+      "Hiển thị các chuyến đi đã lưu của bạn trên bản đồ để theo dõi nhanh.",
     "user.map.empty_title": "Chưa có kế hoạch chuyến đi nào",
-    "user.map.empty_text": "Hãy tạo kế hoạch chuyến đi trong chat, sau đó lưu lại để xem các điểm dừng, lộ trình và ngày di chuyển trên bản đồ.",
-    "user.map.empty_step_1": "Bắt đầu một cuộc chat và nhờ TrAvel lập lịch trình.",
+    "user.map.empty_text":
+      "Hãy tạo kế hoạch chuyến đi trong chat, sau đó lưu lại để xem các điểm dừng, lộ trình và ngày di chuyển trên bản đồ.",
+    "user.map.empty_step_1":
+      "Bắt đầu một cuộc chat và nhờ TrAvel lập lịch trình.",
     "user.map.empty_step_2": "Kiểm tra kế hoạch được tạo và lưu lại.",
     "user.map.empty_step_3": "Quay lại bản đồ để xem toàn bộ lộ trình.",
     "user.map.empty_cta": "Tạo kế hoạch chuyến đi",
@@ -601,7 +618,8 @@ const DICT = {
     "admin.map.geocode_fail": "Không thể chuyển địa chỉ thành tọa độ",
     "admin.map.search_placeholder": "Tìm theo tiêu đề trip hoặc điểm đến...",
     "admin.map.trip": "Trip",
-    "admin.map.trip_hint": "#: TripID, C: ChatID, d: ngày, s: điểm dừng, ngày tạo",
+    "admin.map.trip_hint":
+      "#: TripID, C: ChatID, d: ngày, s: điểm dừng, ngày tạo",
     "admin.map.day": "Ngày",
     "admin.map.day_all": "Tất cả ngày",
     "admin.map.day_prefix": "Ngày",
@@ -615,7 +633,8 @@ const DICT = {
     "admin.map.total_stops": "Tổng điểm dừng",
     "admin.map.mapped_stops": "Điểm đã lên bản đồ",
     "admin.map.unmapped_stops": "Chưa có tọa độ",
-    "admin.map.unmapped_hint": "Một số điểm chưa có tọa độ. Hãy kiểm tra địa chỉ và xử lý lại.",
+    "admin.map.unmapped_hint":
+      "Một số điểm chưa có tọa độ. Hãy kiểm tra địa chỉ và xử lý lại.",
     "admin.map.unmapped_list": "Điểm chưa lên bản đồ",
     "admin.map.no_stops": "Không có điểm dừng phù hợp bộ lọc.",
 

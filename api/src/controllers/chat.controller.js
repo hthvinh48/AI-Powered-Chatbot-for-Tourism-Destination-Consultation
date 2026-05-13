@@ -202,7 +202,11 @@ exports.ask = async (req, res) => {
 
   // Quota check (monthly): free tokens + purchased tokens - used tokens.
   const ledger = await getUserTokenLedger(userId, new Date());
-  if (ledger.remainingTokens <= 0) {
+  if (
+    !ledger.memberActive &&
+    Number.isFinite(ledger.remainingTokens) &&
+    ledger.remainingTokens <= 0
+  ) {
     return res.status(402).json({
       message: "Token quota exceeded for this month",
       code: "TOKEN_QUOTA_EXCEEDED",

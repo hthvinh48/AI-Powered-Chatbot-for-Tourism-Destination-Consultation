@@ -129,9 +129,11 @@ const BillingPage = () => {
   }
 
   const memberEndsAtText = membership?.endsAt ? new Date(membership.endsAt).toLocaleString() : ''
+  const membershipActive = Boolean(membership || summary?.month?.memberActive)
   const summaryNumber = (value) => {
     if (loadingSummary) return '...'
     if (summaryError) return '-'
+    if ((value === null || value === undefined) && membershipActive) return t('billing.unlimited')
     return formatNumber(value ?? 0, lang)
   }
 

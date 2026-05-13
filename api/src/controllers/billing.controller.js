@@ -37,6 +37,10 @@ exports.getSummary = async (req, res) => {
       where: { userId, createdAt: { gte: since7d } },
       _sum: { tokens: true },
     }),
+    prisma.invoice.aggregate({
+      where: { userId, tokens: { gt: 0 }, status: "PAID" },
+      _sum: { tokens: true },
+    }),
   ]);
 
   const totalUsedTokens = Number(usedAll?._sum?.tokens || 0);
@@ -46,6 +50,11 @@ exports.getSummary = async (req, res) => {
   const freePerMonth = await getFreeTokensPerMonth();
   const ledgerMonth = await getUserTokenLedger(userId, now);
 
+  const balanceTokens =
+    ledgerMonth.memberActive || ledgerMonth.remainingTokens == null
+      ? null
+      : Math.max(0, ledgerMonth.remainingTokens);
+
   return res.json({
     totalUsedTokens,
     usedTokens30d,
@@ -53,7 +62,7 @@ exports.getSummary = async (req, res) => {
     totalPurchasedTokens,
     freeTokensPerMonth: freePerMonth,
     month: ledgerMonth,
-    balanceTokens: Math.max(0, ledgerMonth.availableTokens - totalUsedTokens),
+    balanceTokens,
   });
 };
 
@@ -64,20 +73,26 @@ exports.listPurchases = async (req, res) => {
   const skip = (page - 1) * limit;
 
   const [total, purchases] = await prisma.$transaction([
-    prisma.tokenPurchase.count({ where: { userId } }),
-    prisma.tokenPurchase.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+    prisma.invoice.count({
+      where: { userId, tokens: { gt: 0 } },
+    }),
+    prisma.invoice.findMany({
+      where: { userId, tokens: { gt: 0 } },
+      orderBy: { issuedAt: "desc" },
       skip,
       take: limit,
       select: {
         id: true,
+        transactionNo: true,
+        invoiceNo: true,
+        description: true,
+        status: true,
         tokens: true,
         amount: true,
         currency: true,
-        status: true,
         provider: true,
         note: true,
+        issuedAt: true,
         createdAt: true,
       },
     }),
@@ -407,56 +422,35 @@ exports.createPurchase = async (req, res) => {
     ? status.toUpperCase()
     : "PAID";
 
-  const created = await prisma.$transaction(async (tx) => {
-    const purchase = await tx.tokenPurchase.create({
-      data: {
-        userId,
-        tokens: Math.trunc(tokens),
-        amount: amount == null ? null : amount,
-        currency,
-        provider,
-        note,
-        status: finalStatus,
-      },
-      select: {
-        id: true,
-        tokens: true,
-        amount: true,
-        currency: true,
-        status: true,
-        provider: true,
-        note: true,
-        createdAt: true,
-      },
-    });
-
-    const y = new Date().getFullYear();
-    const m = String(new Date().getMonth() + 1).padStart(2, "0");
-    const description = `INV-${y}${m}-TOK-${purchase.id}`;
-
-    const invoice = await tx.invoice.create({
-      data: {
-        userId,
-        tokenPurchaseId: purchase.id,
-        description,
-        status: purchase.status,
-        amount: purchase.amount,
-        currency: purchase.currency,
-        tokens: purchase.tokens,
-        provider: purchase.provider,
-        note: purchase.note,
-      },
-      select: { id: true, description: true },
-    });
-
-    return {
-      ...purchase,
-      invoiceId: invoice.id,
-      invoiceNumber: invoice.description,
-    };
+  const createdInvoice = await prisma.invoice.create({
+    data: {
+      userId,
+      description: `Manual purchase - ${Date.now()}`,
+      status: finalStatus,
+      amount: amount == null ? null : amount,
+      currency,
+      tokens: Math.trunc(tokens),
+      provider,
+      note,
+      issuedAt: new Date(),
+    },
+    select: {
+      id: true,
+      transactionNo: true,
+      invoiceNo: true,
+      description: true,
+      status: true,
+      tokens: true,
+      amount: true,
+      currency: true,
+      provider: true,
+      note: true,
+      issuedAt: true,
+      createdAt: true,
+    },
   });
 
-  return res.status(201).json(created);
+  return res.status(201).json(createdInvoice);
 };
 
 exports.deletePurchase = async (req, res) => {
@@ -465,15 +459,16 @@ exports.deletePurchase = async (req, res) => {
   if (!Number.isFinite(id))
     return res.status(400).json({ message: "Invalid id" });
 
-  const exist = await prisma.tokenPurchase.findUnique({
+  const exist = await prisma.invoice.findUnique({
     where: { id },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, tokens: true },
   });
-  if (!exist) return res.status(404).json({ message: "Not found" });
+  if (!exist || !(exist.tokens > 0))
+    return res.status(404).json({ message: "Not found" });
   if (exist.userId !== userId)
     return res.status(403).json({ message: "Forbidden" });
 
-  await prisma.tokenPurchase.delete({ where: { id } });
+  await prisma.invoice.delete({ where: { id } });
   return res.json({ message: "Deleted" });
 };
 
@@ -532,7 +527,6 @@ exports.getInvoice = async (req, res) => {
       note: true,
       issuedAt: true,
       createdAt: true,
-      tokenPurchaseId: true,
     },
   });
   if (!invoice) return res.status(404).json({ message: "Not found" });

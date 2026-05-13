@@ -106,8 +106,8 @@ exports.monthlyUserTokenStats = async (req, res) => {
         ) a ON a.userId = u.id
         LEFT JOIN (
           SELECT userId, SUM(tokens) AS purchasedTokens
-          FROM [TokenPurchase]
-          WHERE status = 'PAID' AND createdAt >= ${from} AND createdAt < ${to}
+          FROM [Invoice]
+          WHERE status = 'PAID' AND tokens > 0 AND issuedAt >= ${from} AND issuedAt < ${to}
           GROUP BY userId
         ) p ON p.userId = u.id
         ${whereSql}
