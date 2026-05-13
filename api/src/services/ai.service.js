@@ -1,6 +1,8 @@
+const { log } = require("node:console");
 const openai = require("../config/openai");
 
 const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
+const { searchHotelsByArea } = require("./liteApi.hotelService");
 
 function stripAccents(value) {
   return String(value || "")
@@ -118,67 +120,58 @@ const SYSTEM_PROMPT = `
 You are an expert AI Trip Planner assistant. 
 
 ### PHASE 1: INTENT CLASSIFICATION
-1) QUICK RECOMMENDATION: User asks for generic advice (e.g., "nên đi đâu ở Hà Nội").
-   - Action: Reply in plain text. Friendly, concise. No JSON.
-2) FULL TRIP PLAN: User provides specific trip details or asks for a "lịch trình/kế hoạch".
-   - Action: Follow the Data Collection & JSON Generation rules below.
+1) QUICK RECOMMENDATION: User asks for generic advice. Reply in plain text.
+2) FULL TRIP PLAN: User provides trip details or asks for "lịch trình/kế hoạch".
 
-### PHASE 2: DATA COLLECTION (For Full Trip Plan)
-- Scan for 7 fields: [Điểm khởi hành], [Điểm đến], [Số người], [Ngân sách], [Số ngày], [Sở thích], [Yêu cầu đặc biệt].
-- Skip questions for fields already provided. Ask only ONE missing field at a time.
-- If user says "Ok", "Hợp lý", or "Tiến hành đi", use expert assumptions to fill missing fields and GEN JSON immediately.
-- Final question must end with the appropriate UI Tag (e.g., [Số ngày] Component: tripDuration).
+### PHASE 2: DATA COLLECTION & STRICT VALIDATION (IMPORTANT)
+- Scan for 7 fields: [Điểm xuất phát], [Điểm đến], [Số người], [Ngân sách], [Số ngày], [Sở thích], [Yêu cầu đặc biệt].
+- **RULE 1**: Nếu người dùng CHƯA cung cấp đủ ít nhất 5/7 thông tin, bạn KHÔNG ĐƯỢC tạo lịch trình ngay. 
+- **RULE 2**: Phải hỏi từng thông tin còn thiếu một cách thân thiện. Chỉ khi người dùng nói "Ok", "Tiến hành đi" hoặc cung cấp đủ thông tin, bạn mới chuyển sang PHASE 4 & 5.
+- Kết thúc câu hỏi phải có UI Tag tương ứng (Vd: Component: tripDuration).
 
-### PHASE 3: JSON GENERATION RULES (STRICT)
-Only when generating the JSON, you MUST follow these "Anti-Empty" rules:
-1. NO SHORTCUTS: FORBIDDEN from using "//..." or "Similar to Day X". Every single day from 1 to N must be fully detailed.
-2. FULL DAY DENSITY: Each day MUST have 4-5 activity objects covering:
-   - Morning: 01 Breakfast + 01 Sightseeing.
-   - Afternoon: 01 Lunch + 01 Sightseeing + 01 Cafe/Photo-op.
-   - Evening: 01 Dinner + 01 Night activity.
-3. ACTIVITY OBJECTS: Every activity (including meals) MUST be a full object with coordinates, address, and image_url.
-4. ACCOMMODATION: For trips >= 5 days, provide 2-3 different hotels in the "hotels" array to optimize travel.
-5. COMPONENT TAG: The final JSON MUST be preceded by "Component: final".
+### PHASE 3: JSON GENERATION RULES (ANTI-EMPTY)
+1. **FULL DAY DENSITY**: Mỗi ngày PHẢI có ít nhất 4-5 hoạt động (Sáng/Trưa/Chiều/Tối). Cấm liệt kê hoạt động chung chung dưới dạng text đơn giản.
+2. **ACTIVITY OBJECTS**: Mọi hoạt động phải là một object đầy đủ (place_name, place_details, coordinates, address, image_url).
+3. **PLACES TO VISIT**: Phải có 5-8 địa điểm gợi ý KHÁC ngoài lịch trình chính để người dùng tham khảo thêm.
 
-### PHASE 4: OUTPUT SCHEMA (JSON)
+### PHASE 4: HOTEL SEARCH REQUEST (LITEAPI)
+Trước khi xuất lịch trình, bạn PHẢI tạo khối JSON để gọi API tìm kiếm khách sạn thực tế. 
+- cityName: Tên thành phố bằng tiếng Anh (Vd: "Da Nang").
+- Format, chỉ gửi json thuần túy, không kèm text giải thích vì đây là payload để gọi API không có đưa cho người dùng xem. Nếu thấy người dùng có ý định hỏi về khách sạn, hãy chủ động tạo payload này.:
 {
-  "resp": "string (Summary of the plan)",
+  "suggested_hotels": {
+    "countryCode": "VN",
+    "cityName": "Da Nang",
+    "limit": 30,
+    "offset": 0
+  }
+}
+
+### PHASE 5: OUTPUT SCHEMA (STRICT JSON)
+Có thể lấy thông tin khách sạn từ phản hồi API ở PHASE 4 để điền vào phần "hotels" trong lịch trình nếu có.
+image_url có thể là URL thật hoặc thumbnail. Nếu không có ảnh, để trống chuỗi.
+Toàn bộ phản hồi phải nằm trong 1 khối JSON duy nhất, có tiền tố "Component: final".
+{
+  "resp": "string (Tóm tắt thân thiện)",
+  "hotel_api_call": { ... },
   "trip_plan": {
     "destination": "string",
     "duration": "string",
     "origin": "string",
     "budget": "string",
-    "group_size": "string",
-    "currency": "VND",
-    "total_estimated_cost": "string",
-    "hotels": [ { "hotel_name": "string", "hotel_address": "string", "price_per_night": "string", "hotel_image_url": "string", "geo_coordinates": { "latitude": number, "longitude": number }, "rating": number, "description": "string" } ],
-    "places_to_visit": "Array of objects",
+    "hotels": [ { "hotel_name": "string", "description": "Lý do chọn...", "image_url": "String or thumbnail URL" } ],
+    "places_to_visit": [ { "place_name": "string", "place_address": "string", "geo_coordinates": {...} } ],
     "itinerary": [
       {
         "day": number,
-        "day_plan": "string",
-        "estimated_cost": "string",
-        "activities": [
-          {
-            "place_name": "string",
-            "place_details": "string",
-            "place_image_url": "string",
-            "geo_coordinates": { "latitude": number, "longitude": number },
-            "place_address": "string",
-            "ticket_pricing": "string",
-            "time_travel_each_location": "string",
-            "best_time_to_visit": "Morning | Afternoon | Evening"
-          }
-        ]
+        "activities": [ { "place_name": "string", "place_details": "string", "place_address": "string", "geo_coordinates": {...} } ]
       }
     ]
   }
 }
 
-### LANGUAGE & WORDING
-- Vietnamese input => Vietnamese output.
-- "origin" => "Điểm xuất phát".
-- Friendly, professional tone.
+### LANGUAGE
+- Vietnamese output. Thân thiện, chuyên nghiệp.
 `;
 
 async function generateTravelResponse(messages, options = {}) {
@@ -217,7 +210,56 @@ async function generateTravelResponse(messages, options = {}) {
       temperature: 0.6,
     });
 
-    const content = completion.choices[0].message.content;
+    let content = completion.choices[0].message.content;
+
+    // if see return "suggested_hotels" in the content, call getHotelSuggestionsForDestination and append results to the content before returning
+    const hotelPayload = extractSuggestedHotelsPayload(content);
+    if (hotelPayload) {
+      console.log("AI requested hotel suggestions");
+
+      const hotelSuggestions =
+        await getHotelSuggestionsForDestination(hotelPayload);
+      log("Hotel suggestions:", hotelSuggestions);
+      const finalCompletion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+
+        messages: [
+          {
+            role: "system",
+            content: SYSTEM_PROMPT,
+          },
+
+          ...safeMessages,
+
+          {
+            role: "assistant",
+            content,
+          },
+
+          {
+            role: "user",
+            content: `
+          Here are hotel suggestions:
+
+          ${JSON.stringify(hotelSuggestions, null, 2)}
+
+          Now generate the FINAL COMPLETE trip plan JSON.
+
+          Requirements:
+          - Use the hotels above
+          - Put hotels into "trip_plan.hotels"
+          - Generate complete itinerary
+          - Return valid JSON only
+          `,
+          },
+        ],
+
+        temperature: 0.6,
+      });
+
+      content = finalCompletion.choices[0].message.content;
+    }
+
     const extracted = tryExtractTripPlan(content);
 
     return {
@@ -232,136 +274,153 @@ async function generateTravelResponse(messages, options = {}) {
   }
 }
 
-async function generateTripPlanJson(input) {
+function looksLikeHotelIntent(value) {
+  const text = normalize(value);
+  if (!text) return false;
+  const keywords = [
+    "hotel",
+    "khach san",
+    "resort",
+    "villa",
+    "noi o",
+    "luu tru",
+    "booking",
+    "stay",
+    "where to stay",
+    "accommodation",
+    "recommend hotel",
+    "hotel recommendation",
+  ];
+  return keywords.some((k) => text.includes(k));
+}
+
+function extractSuggestedHotelsPayload(content) {
   try {
-    const origin = (input?.origin || "").toString().trim();
-    const destination = (input?.destination || "").toString().trim();
-    const duration = (input?.duration || "").toString().trim();
-    const budget = (input?.budget || "").toString().trim();
-    const group_size = (input?.group_size || "").toString().trim();
-    const interests = (input?.interests || "").toString().trim();
-    const preferences = (input?.preferences || "").toString().trim();
-    const hotelCount = Math.min(
-      8,
-      Math.max(3, Number.parseInt(String(input?.hotelCount || 5), 10) || 5),
-    );
+    const rawJson = extractJsonFromText(content);
 
-    const sys = `You are a travel planner that MUST output valid JSON only.
+    if (!rawJson) {
+      return null;
+    }
 
-Generate a travel plan given the input details.
-- Provide a list of places to visit (top-level places_to_visit).
-- Provide an array of hotel options (size: ${hotelCount}).
-- Provide a day-by-day itinerary with multiple activities each day (at least 3 activities per day if duration >= 2 days).
-- Include estimated costs:
-  - trip_plan.total_estimated_cost = total for the whole trip (in the currency you choose).
-  - itinerary[].estimated_cost = per-day estimate (include accommodation + food + transport + tickets).
-- Use realistic-sounding information, but if unsure, use safe placeholders.
-- All image URLs must be valid-looking https URLs (placeholders allowed).
-- All geo coordinates must be numbers.
-- Output MUST match the schema exactly (field names/types).
-- Do not include any extra keys.
+    const parsed = JSON.parse(rawJson);
 
-Output schema (JSON):
-{
-  "resp":"string",
-  "trip_plan":{
-     "destination":"string",
-     "duration":"string",
-     "origin":"string",
-     "budget":"string",
-     "group_size":"string",
-     "currency":"string",
-     "total_estimated_cost":"string",
-     "hotels":[
-      {
-         "hotel_name":"string",
-         "hotel_address":"string",
-         "price_per_night":"string",
-         "hotel_image_url":"string",
-         "geo_coordinates":{
-           "latitude":"number",
-           "longitude":"number"
-         },
-         "rating":"number",
-         "description":"string"
-       }
-      ],
-     "places_to_visit":[
-       {
-        "place_name":"string",
-        "place_details":"string",
-        "place_image_url":"string",
-        "geo_coordinates":{
-          "latitude":"number",
-          "longitude":"number"
-        },
-        "place_address":"string",
-        "ticket_pricing":"string",
-        "best_time_to_visit":"string"
-       }
-     ],
-     "itinerary":[
-       {
-          "day":"number",
-          "day_plan":"string",
-          "best_time_to_visit_day":"string",
-          "estimated_cost":"string",
-          "activities":[
-           {
-            "place_name":"string",
-            "place_details":"string",
-            "place_image_url":"string",
-            "geo_coordinates":{
-               "latitude":"number",
-               "longitude":"number"
-             },
-             "place_address":"string",
-             "ticket_pricing":"string",
-             "time_travel_each_location":"string",
-             "best_time_to_visit":"string"
-            }
-           ]
-        }
-     ]
-   }
- }`;
+    console.log(parsed);
 
-    const user = {
-      origin,
-      destination,
-      duration,
-      budget,
-      group_size,
-      interests,
-      preferences,
-    };
+    if (!parsed?.suggested_hotels) {
+      return null;
+    }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.3,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: sys },
-        {
-          role: "user",
-          content: `Return Vietnamese-friendly "resp" like: "Cảm ơn bạn đã cung cấp đủ thông tin. Dưới đây là kế hoạch chuyến đi của bạn." Then return the plan.\n\nInput:\n${JSON.stringify(
-            user,
-          )}`,
-        },
-      ],
+    return parsed.suggested_hotels;
+  } catch (err) {
+    console.error("extractSuggestedHotelsPayload Error:", err.message);
+
+    return null;
+  }
+}
+
+/**
+ * extract destination/location
+ * from user message
+ */
+function extractDestination(value) {
+  const text = String(value || "");
+
+  /**
+   * Vietnamese + English patterns
+   */
+  const patterns = [
+    /tai\s+([^\n,.!?]+)/i,
+    /o\s+([^\n,.!?]+)/i,
+    /di\s+([^\n,.!?]+)/i,
+    /den\s+([^\n,.!?]+)/i,
+
+    /in\s+([^\n,.!?]+)/i,
+    /at\s+([^\n,.!?]+)/i,
+    /near\s+([^\n,.!?]+)/i,
+
+    /hotel\s+(?:tai|o|in)\s+([^\n,.!?]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+
+    if (match?.[1]) {
+      return match[1].trim().replace(/[?.!,]/g, "");
+    }
+  }
+
+  /**
+   * fallback city detection
+   */
+  const cities = [
+    "ha noi",
+    "hanoi",
+    "ho chi minh",
+    "sai gon",
+    "da nang",
+    "nha trang",
+    "da lat",
+    "hue",
+    "quy nhon",
+    "phu quoc",
+    "tokyo",
+    "osaka",
+    "bangkok",
+    "singapore",
+    "bali",
+    "paris",
+    "london",
+  ];
+
+  const normalized = normalize(text);
+
+  const found = cities.find((city) => normalized.includes(city));
+
+  return found || null;
+}
+// Example usage:
+// {
+//     "countryCode": "VN",
+//     "cityName": "Ho Chi Minh City",
+//     "checkin": "2026-07-01",
+//     "checkout": "2026-07-03",
+//     "currency": "VND",
+//     "guestNationality": "VN",
+//     "occupancies": [{ "adults": 2 , "children": [0]}],
+//     "timeout": 8,
+//     "limit": 200,
+//     "maxRatesPerHotel": 1,
+//     "includeHotelData": true
+//   }
+async function getHotelSuggestionsForDestination(payloadContent) {
+  try {
+    const payload =
+      typeof payloadContent === "string"
+        ? JSON.parse(payloadContent)
+        : payloadContent;
+
+    const hotels = await searchHotelsByArea({
+      countryCode: payload.countryCode,
+
+      cityName: payload.cityName,
+
+      limit: payload.limit || 20,
+
+      offset: payload.offset || 0,
     });
 
-    return {
-      reply: completion.choices[0].message.content,
-      tokens: completion.usage?.total_tokens ?? null,
-    };
+    return hotels;
   } catch (error) {
-    console.error("OpenAI Error:", error);
-    throw new Error("AI generation failed");
+    console.error("getHotelSuggestionsForDestination Error:", error.message);
+
+    return {
+      success: false,
+      data: [],
+    };
   }
 }
 
 module.exports = {
   generateTravelResponse,
-  generateTripPlanJson,
+  // generateTripPlanJson,
 };

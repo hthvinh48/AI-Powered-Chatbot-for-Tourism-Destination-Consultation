@@ -354,7 +354,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = nu
                 </div>
                 <div className="tripPlanEntityGrid">
                   {hotels.map((hotel, idx) => {
-                    const imageUrl = safeUrl(hotel.hotel_image_url)
+                    const imageUrl = safeUrl(hotel.image_url)
                     const imageKey = `hotel-${idx}-${imageUrl || 'none'}`
                     const showImage = Boolean(imageUrl) && !brokenImages[imageKey]
                     return (
@@ -363,7 +363,7 @@ const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = nu
                           {showImage ? (
                             <img
                               className="tripPlanEntityImg"
-                              src={imageUrl}
+                              src={hotel.image_url || hotel.hotel_image_url}
                               alt={hotel.hotel_name || 'hotel'}
                               onError={() => markImageBroken(imageKey)}
                             />

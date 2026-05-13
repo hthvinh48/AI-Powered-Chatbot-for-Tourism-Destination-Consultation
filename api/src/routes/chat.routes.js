@@ -20,7 +20,7 @@ router.post("/ask", asyncHandle(chatController.ask)); // body: { chatId?, messag
 
 // Trip plans (generated JSON -> saved into TripPlan/Destination)
 router.get("/:chatId/trip-plans", asyncHandle(chatController.listTripPlans));
-router.post("/:chatId/trip-plans/generate", asyncHandle(chatController.generateTripPlan));
+// router.post("/:chatId/trip-plans/generate", asyncHandle(chatController.generateTripPlan));
 router.post("/:chatId/trip-plans", asyncHandle(chatController.saveTripPlan));
 
 module.exports = router;

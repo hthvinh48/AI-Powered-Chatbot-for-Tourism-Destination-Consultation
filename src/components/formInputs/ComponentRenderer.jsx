@@ -6,6 +6,9 @@ import DestinationInput from "./DestinationInput";
 import TripDurationInput from "./TripDurationInput";
 import BudgetInput from "./BudgetInput";
 import SpecialRequestsInput from "./SpecialRequestsInput";
+import { extractJsonFromText, safeJsonParse } from "../../lib/tolerantJson";
+// import HotelSuggestionGroup from "./HotelSuggestionGroup";
+import "./formInputs.css";
 
 /**
  * Detect Component tags từ message (format: "Component: xxx")
