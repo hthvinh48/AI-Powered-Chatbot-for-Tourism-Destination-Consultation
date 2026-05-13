@@ -87,6 +87,11 @@ const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = nu
   const [saving, setSaving] = useState(false)
   const [savedLocally, setSavedLocally] = useState(false)
   const [brokenImages, setBrokenImages] = useState({})
+  const [galleryOpen, setGalleryOpen] = useState(false)
+
+const [galleryImages, setGalleryImages] = useState([])
+
+const [galleryIndex, setGalleryIndex] = useState(0)
 
   const wrapper = useMemo(() => parseWrapper(content), [content])
   const tripPlan = useMemo(() => {
@@ -400,59 +405,173 @@ const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = nu
               </section>
             ) : null}
 
-            {places.length > 0 ? (
-              <section className="tripPlanSection">
-                <div className="tripPlanSectionHead">
-                  <i className="ti ti-map-pin" />
-                  <h5>{t('trip.section.places')}</h5>
+{places.length > 0 ? (
+  <section className="tripPlanSection">
+    <div className="tripPlanSectionHead">
+      <i className="ti ti-map-pin" />
+
+      <h5>{t('trip.section.places')}</h5>
+    </div>
+
+    <div className="tripPlanEntityGrid">
+      {places.map((place, idx) => {
+        /**
+         * support:
+         * images[]
+         * image_url
+         * place_image_url
+         */
+        const images = Array.isArray(place.images)
+          ? place.images
+          : []
+
+        if (
+          images.length === 0 &&
+          (place.image_url ||
+            place.place_image_url)
+        ) {
+          images.push({
+            thumbnail:
+              place.image_url ||
+              place.place_image_url,
+
+            original:
+              place.image_url ||
+              place.place_image_url,
+          })
+        }
+
+        const cover =
+          images?.[0]?.thumbnail ||
+          images?.[0]?.original ||
+          ''
+
+        const imageUrl =
+          safeUrl(cover)
+
+        const imageKey = `place-${idx}-${imageUrl || 'none'}`
+
+        const showImage =
+          Boolean(imageUrl) &&
+          !brokenImages[imageKey]
+
+        return (
+          <article
+            key={`place-${idx}`}
+            className="tripPlanEntityCard"
+          >
+            {/* IMAGE */}
+            <div className="tripPlanEntityMedia">
+              {showImage ? (
+                <>
+                  <img
+                    className="tripPlanEntityImg"
+                    src={imageUrl}
+                    alt={
+                      place.place_name ||
+                      'place'
+                    }
+                    loading="lazy"
+                    onError={() =>
+                      markImageBroken(
+                        imageKey
+                      )
+                    }
+                  />
+
+                  {/* MORE IMAGES */}
+                  {images.length > 1 ? (
+                    <button
+                      type="button"
+                      className="tripPlanGalleryBtn"
+                      onClick={() => {
+                        setGalleryImages(
+                          images
+                        )
+
+                        setGalleryIndex(
+                          0
+                        )
+
+                        setGalleryOpen(
+                          true
+                        )
+                      }}
+                    >
+                      +
+                      {images.length - 1}{' '}
+                      ảnh
+                    </button>
+                  ) : null}
+                </>
+              ) : (
+                <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
+                  <i className="ti ti-photo-off" />
+
+                  <span>
+                    {place.place_name ||
+                      '-'}
+                  </span>
                 </div>
-                <div className="tripPlanEntityGrid">
-                  {places.map((place, idx) => {
-                    const imageUrl = safeUrl(place.place_image_url)
-                    const imageKey = `place-${idx}-${imageUrl || 'none'}`
-                    const showImage = Boolean(imageUrl) && !brokenImages[imageKey]
-                    return (
-                      <article key={`place-${idx}`} className="tripPlanEntityCard">
-                        <div className="tripPlanEntityMedia">
-                          {showImage ? (
-                            <img
-                              className="tripPlanEntityImg"
-                              src={imageUrl}
-                              alt={place.place_name || 'place'}
-                              onError={() => markImageBroken(imageKey)}
-                            />
-                          ) : (
-                            <div className="tripPlanEntityImg tripPlanEntityImgPlaceholder">
-                              <i className="ti ti-photo-off" />
-                              <span>{place.place_name || '-'}</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="tripPlanEntityBody">
-                          <h6>{place.place_name || '-'}</h6>
-                          {place.place_address ? <p>{place.place_address}</p> : null}
-                          {place.place_details ? <p>{place.place_details}</p> : null}
-                          <div className="tripPlanEntityTags">
-                            {place.ticket_pricing ? (
-                              <span>
-                                <i className="ti ti-ticket" />
-                                {formatMoneyLike(place.ticket_pricing, lang)}
-                              </span>
-                            ) : null}
-                            {place.best_time_to_visit ? (
-                              <span>
-                                <i className="ti ti-sun" />
-                                {place.best_time_to_visit}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                      </article>
-                    )
-                  })}
+              )}
+            </div>
+
+            {/* BODY */}
+            <div className="tripPlanEntityBody">
+              <h6>
+                {place.place_name ||
+                  '-'}
+              </h6>
+
+              {place.place_address ? (
+                <div className="tripPlanEntityAddress">
+                  <i className="ti ti-map-2" />
+
+                  <span>
+                    {
+                      place.place_address
+                    }
+                  </span>
                 </div>
-              </section>
-            ) : null}
+              ) : null}
+
+              {place.place_details ? (
+                <p className="tripPlanEntityDescription">
+                  {
+                    place.place_details
+                  }
+                </p>
+              ) : null}
+
+              <div className="tripPlanEntityTags">
+                {place.ticket_pricing ? (
+                  <span>
+                    <i className="ti ti-ticket" />
+
+                    {formatMoneyLike(
+                      place.ticket_pricing,
+                      lang
+                    )}
+                  </span>
+                ) : null}
+
+                {place.best_time_to_visit ? (
+                  <span>
+                    <i className="ti ti-sun" />
+
+                    {
+                      place.best_time_to_visit
+                    }
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  </section>
+) : null}
 
             <section className="tripPlanSection">
               <div className="tripPlanSectionHead">
@@ -528,7 +647,70 @@ const TripPlanMessage = ({ chatId, content, allowSave = true, savedTripKeys = nu
           </div>
         </div>
       ) : null}
+      {galleryOpen ? (
+  <div
+    className="tripPlanGalleryModal"
+    onClick={() =>
+      setGalleryOpen(false)
+    }
+  >
+    <div
+      className="tripPlanGalleryContent"
+      onClick={(e) =>
+        e.stopPropagation()
+      }
+    >
+      <button
+        type="button"
+        className="tripPlanGalleryClose"
+        onClick={() =>
+          setGalleryOpen(false)
+        }
+      >
+        <i className="ti ti-x" />
+      </button>
 
+      {/* MAIN IMAGE */}
+      <img
+        className="tripPlanGalleryMainImg"
+        src={
+          galleryImages[
+            galleryIndex
+          ]?.original ||
+          galleryImages[
+            galleryIndex
+          ]?.thumbnail
+        }
+        alt="gallery"
+      />
+
+      {/* THUMBS */}
+      <div className="tripPlanGalleryThumbs">
+        {galleryImages.map(
+          (img, i) => (
+            <img
+              key={i}
+              className={`tripPlanGalleryThumb ${
+                galleryIndex === i
+                  ? 'active'
+                  : ''
+              }`}
+              src={
+                img.thumbnail
+              }
+              alt=""
+              onClick={() =>
+                setGalleryIndex(
+                  i
+                )
+              }
+            />
+          )
+        )}
+      </div>
+    </div>
+  </div>
+) : null}
       {dialogNode}
     </>
   )

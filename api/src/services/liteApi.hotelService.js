@@ -2,8 +2,7 @@ require("dotenv").config();
 
 const axios = require("axios");
 
-const LITE_API_BASE_URL =
-  "https://api.liteapi.travel/v3.0";
+const LITE_API_BASE_URL = "https://api.liteapi.travel/v3.0";
 
 const liteApi = axios.create({
   baseURL: LITE_API_BASE_URL,
@@ -31,46 +30,32 @@ function normalize(value) {
  */
 async function resolveCityCodeByName(destination) {
   try {
-    const response = await liteApi.get(
-      "/data/cities",
-      {
-        params: {
-          query: destination,
-        },
-      }
-    );
+    const response = await liteApi.get("/data/cities", {
+      params: {
+        query: destination,
+      },
+    });
 
-    const cities =
-      response.data?.data || [];
+    const cities = response.data?.data || [];
 
     if (!cities.length) {
       return null;
     }
 
-    const target =
-      normalize(destination);
+    const target = normalize(destination);
 
     const bestMatch =
-      cities.find((city) =>
-        normalize(city.name).includes(
-          target
-        )
-      ) || cities[0];
+      cities.find((city) => normalize(city.name).includes(target)) || cities[0];
 
     return {
       cityName: bestMatch.name,
-      countryCode:
-        bestMatch.countryCode,
-      cityCode:
-        bestMatch.cityCode ||
-        bestMatch.code ||
-        null,
+      countryCode: bestMatch.countryCode,
+      cityCode: bestMatch.cityCode || bestMatch.code || null,
     };
   } catch (error) {
     console.error(
       "resolveCityCodeByName Error:",
-      error.response?.data ||
-        error.message
+      error.response?.data || error.message,
     );
 
     return null;
@@ -88,121 +73,68 @@ async function searchHotelsByArea({
   offset = 0,
 }) {
   try {
-    console.log(
-      "Searching hotels:",
-      {
+    const response = await liteApi.get("/data/hotels", {
+      params: {
         countryCode,
         cityName,
         limit,
         offset,
-      }
-    );
+      },
+    });
 
-    const response =
-      await liteApi.get(
-        "/data/hotels",
-        {
-          params: {
-            countryCode,
-            cityName,
-            limit,
-            offset,
-          },
-        }
-      );
-
-    const hotels =
-      response.data?.data || [];
+    const hotels = response.data?.data || [];
 
     /**
      * format data
      */
-    const formattedHotels =
-      hotels.map((hotel) => {
-        const images =
-          hotel.images ||
-          hotel.photos ||
-          hotel.gallery ||
-          [];
+    const formattedHotels = hotels.map((hotel) => {
+      const images = hotel.images || hotel.photos || hotel.gallery || [];
 
-        return {
-          id:
-            hotel.hotelId ||
-            hotel.id,
+      return {
+        id: hotel.hotelId || hotel.id,
 
-          name:
-            hotel.name || "",
+        name: hotel.name || "",
 
-          description:
-            hotel.description ||
-            "",
+        description: hotel.description || "",
 
-          address:
-            hotel.address || "",
+        address: hotel.address || "",
 
-          city:
-            hotel.cityName ||
-            cityName,
+        city: hotel.cityName || cityName,
 
-          country:
-            hotel.countryCode ||
-            countryCode,
+        country: hotel.countryCode || countryCode,
 
-          latitude:
-            hotel.latitude ||
-            null,
+        latitude: hotel.latitude || null,
 
-          longitude:
-            hotel.longitude ||
-            null,
+        longitude: hotel.longitude || null,
 
-          stars:
-            hotel.starRating ||
-            hotel.stars ||
-            0,
+        stars: hotel.starRating || hotel.stars || 0,
 
-          amenities:
-            hotel.amenities ||
-            [],
+        amenities: hotel.amenities || [],
 
-          thumbnail:
-            hotel.main_photo ||
-            hotel.thumbnail ||
-            images?.[0]?.url ||
-            null,
+        thumbnail:
+          hotel.main_photo || hotel.thumbnail || images?.[0]?.url || null,
 
-          images: images.map(
-            (img) => ({
-              url:
-                img.url ||
-                img.image ||
-                img.link,
+        images: images.map((img) => ({
+          url: img.url || img.image || img.link,
 
-              caption:
-                img.caption ||
-                "",
-            })
-          ),
-        };
-      });
+          caption: img.caption || "",
+        })),
+      };
+    });
 
     return {
       success: true,
-      total:
-        formattedHotels.length,
+      total: formattedHotels.length,
       data: formattedHotels,
     };
   } catch (error) {
     console.error(
       "searchHotelsByArea Error:",
-      error.response?.data ||
-        error.message
+      error.response?.data || error.message,
     );
 
     throw new Error(
-      error.response?.data?.error
-        ?.message ||
-        "Cannot fetch hotels"
+      error.response?.data?.error?.message || "Cannot fetch hotels",
     );
   }
 }

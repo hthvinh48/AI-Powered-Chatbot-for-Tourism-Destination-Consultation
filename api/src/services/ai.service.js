@@ -3,6 +3,7 @@ const openai = require("../config/openai");
 
 const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
 const { searchHotelsByArea } = require("./liteApi.hotelService");
+const { searchImages } = require("./serpApi.yahooImage");
 
 function stripAccents(value) {
   return String(value || "")
@@ -215,11 +216,8 @@ async function generateTravelResponse(messages, options = {}) {
     // if see return "suggested_hotels" in the content, call getHotelSuggestionsForDestination and append results to the content before returning
     const hotelPayload = extractSuggestedHotelsPayload(content);
     if (hotelPayload) {
-      console.log("AI requested hotel suggestions");
-
       const hotelSuggestions =
         await getHotelSuggestionsForDestination(hotelPayload);
-      log("Hotel suggestions:", hotelSuggestions);
       const finalCompletion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
 
@@ -262,6 +260,54 @@ async function generateTravelResponse(messages, options = {}) {
 
     const extracted = tryExtractTripPlan(content);
 
+    //Use yahoo image search to get image for each place in places_to_visit then add image_url field to each place and hotel
+    try {
+      if (extracted?.trip_plan) {
+        const { trip_plan } = extracted;
+
+        const places = trip_plan.places_to_visit || [];
+
+        await Promise.all(
+          places.map(async (place) => {
+            try {
+              /**
+               * build better query
+               * example:
+               * "Ngũ Hành Sơn Hòa Hải, Ngũ Hành Sơn, Đà Nẵng"
+               */
+              const query = [place.place_name, place.place_address]
+                .filter(Boolean)
+                .join(" ");
+
+              if (!query) {
+                place.image_url = "";
+                return;
+              }
+
+              const imageResults = await searchImages(query);
+
+              /**
+               * only append image_url
+               */
+              const firstImage = imageResults?.images?.[0];
+
+              place.image_url =
+                firstImage?.thumbnail || firstImage?.original || "";
+            } catch (err) {
+              console.error(
+                "Error fetching image for place:",
+                place.place_name,
+                err.message,
+              );
+
+              place.image_url = "";
+            }
+          }),
+        );
+      }
+    } catch (err) {
+      console.error("Error in image search process:", err.message);
+    }
     return {
       reply: content,
       trip_plan: extracted.trip_plan,
@@ -303,8 +349,6 @@ function extractSuggestedHotelsPayload(content) {
     }
 
     const parsed = JSON.parse(rawJson);
-
-    console.log(parsed);
 
     if (!parsed?.suggested_hotels) {
       return null;
