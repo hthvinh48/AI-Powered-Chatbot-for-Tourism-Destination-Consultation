@@ -1,0 +1,61 @@
+.admin-map-popup-image-wrap {
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-map-popup-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-map-stop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-map-stop-image-wrap {
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.admin-map-stop-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-map-stop-placeholder {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #999;
+}
+
+.admin-map-stop-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-map-stop-title {
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.admin-map-stop-meta {
+  font-size: 13px;
+  color: #666;
+  margin-top: 4px;
+}

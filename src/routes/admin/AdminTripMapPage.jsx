@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css'
 import { apiRequestBackend } from '../../lib/apiClient'
 import { useI18n } from '../../lib/useI18n'
 import { TRIP_PLANS_CHANGED_EVENT } from '../../lib/tripPlanState'
+import './AdminTripMapPage.css'
 
 const GEO_CACHE_KEY = 'admin_trip_map_geo_cache_v1'
 const MAP_DEFAULT_CENTER = [16.047079, 108.20623]
@@ -211,12 +212,36 @@ function collectStops(tripPlan) {
 
         result.push({
             id: `place-${index}`,
+
             type: 'place',
+
             day: null,
+
             name,
+
             address,
-            details: normalizeText(place?.place_details),
+
+            details: normalizeText(
+                place?.place_details
+            ),
+
+            image:
+                place?.image_url ||
+                place?.place_image_url ||
+                place?.images?.[0]
+                    ?.thumbnail ||
+                place?.images?.[0]
+                    ?.original ||
+                '',
+
+            images: Array.isArray(
+                place?.images
+            )
+                ? place.images
+                : [],
+
             query,
+
             queries,
         })
     })
@@ -233,12 +258,36 @@ function collectStops(tripPlan) {
 
         result.push({
             id: `hotel-${index}`,
+
             type: 'hotel',
+
             day: null,
+
             name,
+
             address,
-            details: normalizeText(hotel?.description),
+
+            details: normalizeText(
+                hotel?.description
+            ),
+
+            image:
+                hotel?.image_url ||
+                hotel?.hotel_image_url ||
+                hotel?.images?.[0]
+                    ?.thumbnail ||
+                hotel?.images?.[0]
+                    ?.original ||
+                '',
+
+            images: Array.isArray(
+                hotel?.images
+            )
+                ? hotel.images
+                : [],
+
             query,
+
             queries,
         })
     })
@@ -584,13 +633,13 @@ const AdminTripMapPage = ({ userView = false }) => {
             .map((stop) => {
                 const meta = stopMetaById[stop.id]
                 return {
-                ...stop,
+                    ...stop,
                     identityKey: meta?.identityKey || makeStopIdentityKey(stop),
                     visitOrder: meta?.visitOrder ?? 0,
                     markerOrder: meta?.markerOrder ?? 0,
                     orderList: meta?.orderList || [],
                     orderLabel: meta?.orderLabel || '',
-                coord: getCachedCoordForStop(stop, coordsByQuery),
+                    coord: getCachedCoordForStop(stop, coordsByQuery),
                 }
             })
             .filter((stop) => isValidCoord(stop.coord))
@@ -656,15 +705,58 @@ const AdminTripMapPage = ({ userView = false }) => {
                     .filter(Boolean),
             )]
 
+            const imageHtml = stop.image
+                ? `
+    <div class="admin-map-popup-image-wrap">
+      <img
+        src="${escapeHtml(
+                    stop.image
+                )}"
+        class="admin-map-popup-image"
+      />
+    </div>
+  `
+                : ''
+
             const popup = `
-        <div class="admin-map-popup">
-          <b>${escapeHtml(stop.name)}</b><br/>
-          ${stop.orderLabel ? `#${escapeHtml(stop.orderLabel)}<br/>` : ''}
-          ${visitDayLabels.length > 0 ? `${escapeHtml(visitDayLabels.join(', '))}<br/>` : ''}
-          ${stop.address ? `${escapeHtml(stop.address)}<br/>` : ''}
-          ${stop.details ? `<span>${escapeHtml(stop.details)}</span>` : ''}
-        </div>
-      `
+  <div class="admin-map-popup">
+    ${imageHtml}
+
+    <b>
+      ${escapeHtml(stop.name)}
+    </b><br/>
+
+    ${stop.orderLabel
+                    ? `#${escapeHtml(
+                        stop.orderLabel
+                    )}<br/>`
+                    : ''
+                }
+
+    ${visitDayLabels.length > 0
+                    ? `${escapeHtml(
+                        visitDayLabels.join(
+                            ', '
+                        )
+                    )}<br/>`
+                    : ''
+                }
+
+    ${stop.address
+                    ? `${escapeHtml(
+                        stop.address
+                    )}<br/>`
+                    : ''
+                }
+
+    ${stop.details
+                    ? `<span>${escapeHtml(
+                        stop.details
+                    )}</span>`
+                    : ''
+                }
+  </div>
+`
 
             marker.bindPopup(popup)
             marker.addTo(layerGroup)
@@ -918,16 +1010,56 @@ const AdminTripMapPage = ({ userView = false }) => {
                                         <button
                                             key={stop.id}
                                             type="button"
-                                            className={`admin-map-stop ${mapped ? 'is-mapped' : ''} ${focusedStopId === stop.id ? 'is-focused' : ''}`}
-                                            onClick={() => onStopClick(stop)}
+                                            className={`admin-map-stop ${mapped
+                                                ? 'is-mapped'
+                                                : ''
+                                                } ${focusedStopId ===
+                                                    stop.id
+                                                    ? 'is-focused'
+                                                    : ''
+                                                }`}
+                                            onClick={() =>
+                                                onStopClick(stop)
+                                            }
                                         >
-                                            <div className="admin-map-stop-order">{index + 1}</div>
+                                            {/* IMAGE */}
+                                            <div className="admin-map-stop-image-wrap">
+                                                {stop.image ? (
+                                                    <img
+                                                        src={stop.image}
+                                                        alt={stop.name}
+                                                        className="admin-map-stop-image"
+                                                    />
+                                                ) : (
+                                                    <div className="admin-map-stop-placeholder">
+                                                        <i className="ti ti-photo" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* ORDER */}
+                                            <div className="admin-map-stop-order">
+                                                {index + 1}
+                                            </div>
+
+                                            {/* TEXT */}
                                             <div className="admin-map-stop-copy">
                                                 <div className="admin-map-stop-title">
                                                     {stop.name}
-                                                    {stop.day ? <span>{` • ${mapText('day_prefix')} ${stop.day}`}</span> : null}
+
+                                                    {stop.day ? (
+                                                        <span>
+                                                            {` • ${mapText(
+                                                                'day_prefix'
+                                                            )} ${stop.day}`}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
-                                                <div className="admin-map-stop-meta">{stop.address || stop.query}</div>
+
+                                                <div className="admin-map-stop-meta">
+                                                    {stop.address ||
+                                                        stop.query}
+                                                </div>
                                             </div>
                                         </button>
                                     )
@@ -941,13 +1073,13 @@ const AdminTripMapPage = ({ userView = false }) => {
                                 <div className="admin-map-unmapped-list">
                                     {unmappedStops.map((stop, index) => {
                                         return (
-                                        <div key={stop.id} className="admin-map-unmapped-item">
-                                            <span>{index + 1}.</span>
-                                            <div>
-                                                <b>{stop.name}</b>
-                                                <small>{stop.address || stop.query}</small>
+                                            <div key={stop.id} className="admin-map-unmapped-item">
+                                                <span>{index + 1}.</span>
+                                                <div>
+                                                    <b>{stop.name}</b>
+                                                    <small>{stop.address || stop.query}</small>
+                                                </div>
                                             </div>
-                                        </div>
                                         )
                                     })}
                                 </div>

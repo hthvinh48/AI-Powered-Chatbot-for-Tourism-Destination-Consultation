@@ -24,24 +24,67 @@ function sanitizeGeo(obj) {
 
 function sanitizeHotel(hotel) {
   if (!isPlainObject(hotel)) return null;
-  const hotel_name = toStringOrNull(hotel.hotel_name);
-  const hotel_address = toStringOrNull(hotel.hotel_address);
-  const price_per_night = toStringOrNull(hotel.price_per_night);
-  const hotel_image_url = toStringOrNull(hotel.hotel_image_url);
-  // Back-compat: accept both geo_cordinates (typo) and geo_coordinates
-  const geo_coordinates = sanitizeGeo(hotel.geo_coordinates || hotel.geo_cordinates);
+
+  /**
+   * support multiple schemas
+   */
+  const hotel_name = toStringOrNull(hotel.hotel_name || hotel.name);
+
+  const hotel_address = toStringOrNull(hotel.hotel_address || hotel.address);
+
+  const price_per_night = toStringOrNull(hotel.price_per_night || hotel.price);
+
+  const hotel_image_url = toStringOrNull(
+    hotel.hotel_image_url || hotel.image_url,
+  );
+
+  /**
+   * support images gallery
+   */
+  const images = Array.isArray(hotel.images)
+    ? hotel.images
+        .map((img) => ({
+          thumbnail: toStringOrNull(img.thumbnail) || "",
+
+          original: toStringOrNull(img.original) || "",
+
+          source: toStringOrNull(img.source) || "",
+        }))
+        .filter((img) => img.thumbnail || img.original)
+    : [];
+
+  /**
+   * geo support
+   */
+  const geo_coordinates = sanitizeGeo(
+    hotel.geo_coordinates || hotel.geo_cordinates,
+  );
+
   const rating = toNumber(hotel.rating);
+
   const description = toStringOrNull(hotel.description);
 
-  if (!hotel_name || !hotel_address || !price_per_night) return null;
+  /**
+   * IMPORTANT:
+   * only require hotel_name
+   */
+  if (!hotel_name) return null;
 
   return {
     hotel_name,
+
     hotel_address,
+
     price_per_night,
+
     hotel_image_url,
+
+    images,
+
     geo_coordinates,
+
     rating: rating === null ? null : rating,
+
     description,
   };
 }
@@ -54,7 +97,9 @@ function sanitizeActivity(activity) {
   const geo_coordinates = sanitizeGeo(activity.geo_coordinates);
   const place_address = toStringOrNull(activity.place_address);
   const ticket_pricing = toStringOrNull(activity.ticket_pricing);
-  const time_travel_each_location = toStringOrNull(activity.time_travel_each_location);
+  const time_travel_each_location = toStringOrNull(
+    activity.time_travel_each_location,
+  );
   const best_time_to_visit = toStringOrNull(activity.best_time_to_visit);
 
   if (!place_name) return null;
@@ -73,24 +118,49 @@ function sanitizeActivity(activity) {
 
 function sanitizePlace(place) {
   if (!isPlainObject(place)) return null;
-  const place_name = toStringOrNull(place.place_name);
-  const place_details = toStringOrNull(place.place_details);
-  const place_image_url = toStringOrNull(place.place_image_url);
-  const geo_coordinates = sanitizeGeo(place.geo_coordinates);
-  const place_address = toStringOrNull(place.place_address);
-  const ticket_pricing = toStringOrNull(place.ticket_pricing);
-  const best_time_to_visit = toStringOrNull(place.best_time_to_visit);
+
+  const place_name = toStringOrNull(place.place_name || place.name);
+
+  const place_address = toStringOrNull(place.place_address || place.address);
+
+  const place_details = toStringOrNull(
+    place.place_details || place.description,
+  );
+
+  const place_image_url = toStringOrNull(
+    place.place_image_url || place.image_url,
+  );
+
+  const images = Array.isArray(place.images)
+    ? place.images
+        .map((img) => ({
+          thumbnail: toStringOrNull(img.thumbnail) || "",
+
+          original: toStringOrNull(img.original) || "",
+
+          source: toStringOrNull(img.source) || "",
+        }))
+        .filter((img) => img.thumbnail || img.original)
+    : [];
+
+  const geo_coordinates = sanitizeGeo(
+    place.geo_coordinates || place.geo_cordinates,
+  );
 
   if (!place_name) return null;
 
   return {
     place_name,
-    place_details,
-    place_image_url,
-    geo_coordinates,
+
     place_address,
-    ticket_pricing,
-    best_time_to_visit,
+
+    place_details,
+
+    place_image_url,
+
+    images,
+
+    geo_coordinates,
   };
 }
 
@@ -100,7 +170,9 @@ function sanitizeItineraryDay(dayObj) {
   const day_plan = toStringOrNull(dayObj.day_plan);
   const best_time_to_visit_day = toStringOrNull(dayObj.best_time_to_visit_day);
   const estimated_cost = toStringOrNull(dayObj.estimated_cost);
-  const activitiesRaw = Array.isArray(dayObj.activities) ? dayObj.activities : [];
+  const activitiesRaw = Array.isArray(dayObj.activities)
+    ? dayObj.activities
+    : [];
   const activities = activitiesRaw.map(sanitizeActivity).filter(Boolean);
 
   if (day === null) return null;
@@ -116,7 +188,10 @@ function sanitizeItineraryDay(dayObj) {
 
 function sanitizeTripPlanPayload(payload) {
   if (!isPlainObject(payload)) return null;
-  const root = payload.trip_plan && isPlainObject(payload.trip_plan) ? payload.trip_plan : null;
+  const root =
+    payload.trip_plan && isPlainObject(payload.trip_plan)
+      ? payload.trip_plan
+      : null;
   if (!root) return null;
 
   const destination = toStringOrNull(root.destination);
@@ -128,7 +203,9 @@ function sanitizeTripPlanPayload(payload) {
   const total_estimated_cost = toStringOrNull(root.total_estimated_cost);
 
   const hotelsRaw = Array.isArray(root.hotels) ? root.hotels : [];
-  const placesRaw = Array.isArray(root.places_to_visit) ? root.places_to_visit : [];
+  const placesRaw = Array.isArray(root.places_to_visit)
+    ? root.places_to_visit
+    : [];
   const itineraryRaw = Array.isArray(root.itinerary) ? root.itinerary : [];
 
   const hotels = hotelsRaw.map(sanitizeHotel).filter(Boolean);
@@ -155,7 +232,9 @@ function sanitizeTripPlanPayload(payload) {
 
 function parseBudgetNumber(budgetString) {
   if (!budgetString) return null;
-  const match = String(budgetString).replace(/,/g, "").match(/(\d+(\.\d+)?)/);
+  const match = String(budgetString)
+    .replace(/,/g, "")
+    .match(/(\d+(\.\d+)?)/);
   if (!match) return null;
   const n = Number.parseFloat(match[1]);
   return Number.isFinite(n) ? n : null;
