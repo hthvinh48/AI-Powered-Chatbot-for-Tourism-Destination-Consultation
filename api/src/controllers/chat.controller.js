@@ -3,7 +3,7 @@ const {
   generateTravelResponse,
   generateTripPlanJson,
 } = require("../services/ai.service");
-const yahooImageSearch = require("../services/serpApi.yahooImage").yahooSearch;
+const yahooImageSearch = require("../services/serpApi.searchImage").yahooSearch;
 const { Prisma } = require("@prisma/client");
 const {
   sanitizeTripPlanPayload,

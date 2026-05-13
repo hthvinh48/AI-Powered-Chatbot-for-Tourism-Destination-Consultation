@@ -3,7 +3,7 @@ const openai = require("../config/openai");
 
 const QUICK_GUIDE_TOKEN = "[[ASSISTANT_GUIDE_QUICK_SUGGESTION]]";
 const { searchHotelsByArea } = require("./liteApi.hotelService");
-const { searchImages } = require("./serpApi.yahooImage");
+const { searchImages } = require("./serpApi.searchImage");
 
 function stripAccents(value) {
   return String(value || "")
@@ -215,6 +215,7 @@ async function generateTravelResponse(messages, options = {}) {
 
     // if see return "suggested_hotels" in the content, call getHotelSuggestionsForDestination and append results to the content before returning
     const hotelPayload = extractSuggestedHotelsPayload(content);
+    log("Extracted hotel payload:", hotelPayload);
     if (hotelPayload) {
       const hotelSuggestions =
         await getHotelSuggestionsForDestination(hotelPayload);
